@@ -70,10 +70,17 @@ Adafruit_PN532 nfc(PN532_SS);
    #define Serial SerialUSB
 #endif
 
+#define LED1 7  // Intended to show status + activity (maybe green?)
+#define LED2 8  // Reserved for showing an error (maybe red?)
+
 void setup(void) {
   #ifndef ESP8266
     while (!Serial); // for Leonardo/Micro/Zero
   #endif
+
+  pinMode(LED1, OUTPUT);
+  pinMode(LED2, OUTPUT);
+
   Serial.begin(115200);
   Serial.println("Hello!");
 
@@ -95,6 +102,7 @@ void setup(void) {
   Serial.println("Waiting for an ISO14443A Card ...");
 }
 
+unsigned long led1_on = 0;
 
 void loop(void) {
   uint8_t success;
@@ -105,6 +113,19 @@ void loop(void) {
   // 'uid' will be populated with the UID, and uidLength will indicate
   // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
   success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+
+  // If we found any cards, turn the status light on for a bit
+  if (success) {
+    if (!led1_on) {
+      led1_on = millis();
+      digitalWrite(LED1, HIGH);
+    }
+  }
+
+  if (led1_on && (millis() - led1_on > 1000UL)) {
+    led1_on = 0;
+    digitalWrite(LED1, LOW);
+  }
 
   if (success) {
     // Display some basic information about the card
