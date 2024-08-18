@@ -32,3 +32,7 @@ removed.  Secondly, both a Translink Go card and a Shenzhen metro card are
 held up at the same time - showing simultaneous detection and reading.
 
 This format is expected to evolve after more testing.
+
+## Example wiring:
+
+<img src="wiring_example.jpg" width=800/>
