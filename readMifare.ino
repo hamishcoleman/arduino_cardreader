@@ -2,7 +2,7 @@
 /*!
     @file     readMifare.pde
     @author   Adafruit Industries
-	@license  BSD (see license.txt)
+    @license  BSD (see license.txt)
 
     This example will wait for any ISO14443A card or tag, and
     depending on the size of the UID will attempt to read from it.
@@ -124,24 +124,24 @@ void loop(void) {
       Serial.println("Trying to authenticate block 4 with default KEYA value");
       uint8_t keya[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
-	  // Start with block 4 (the first block of sector 1) since sector 0
-	  // contains the manufacturer data and it's probably better just
-	  // to leave it alone unless you know what you're doing
+      // Start with block 4 (the first block of sector 1) since sector 0
+      // contains the manufacturer data and it's probably better just
+      // to leave it alone unless you know what you're doing
       success = nfc.mifareclassic_AuthenticateBlock(uid, uidLength, 4, 0, keya);
 
       if (success)
       {
         Serial.println("Sector 1 (Blocks 4..7) has been authenticated");
         uint8_t data[16];
-		
+
         // If you want to write something to block 4 to test with, uncomment
-		// the following line and this text should be read back in a minute
+        // the following line and this text should be read back in a minute
         //memcpy(data, (const uint8_t[]){ 'a', 'd', 'a', 'f', 'r', 'u', 'i', 't', '.', 'c', 'o', 'm', 0, 0, 0, 0 }, sizeof data);
         // success = nfc.mifareclassic_WriteDataBlock (4, data);
 
         // Try to read the contents of block 4
         success = nfc.mifareclassic_ReadDataBlock(4, data);
-		
+
         if (success)
         {
           // Data seems to have been read ... spit it out
@@ -177,7 +177,7 @@ void loop(void) {
         // Data seems to have been read ... spit it out
         nfc.PrintHexChar(data, 4);
         Serial.println("");
-		
+
         // Wait a bit before reading the card again
         delay(1000);
       }
