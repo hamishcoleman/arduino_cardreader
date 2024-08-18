@@ -99,20 +99,25 @@ void setup(void) {
   // configure board to read RFID tags
   nfc.SAMConfig();
 
-  Serial.println("Waiting for an ISO14443A Card ...");
+  Serial.println("Waiting for a Card ...");
 }
 
 unsigned long led1_on = 0;
 
 void loop(void) {
   uint8_t success;
-  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
+  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
 
   // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
   // 'uid' will be populated with the UID, and uidLength will indicate
   // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
+
+#if 0
   success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+#endif
+
+  success = nfc.readPassiveTargetID(PN532_FELICA_212, uid, &uidLength);
 
   // If we found any cards, turn the status light on for a bit
   if (success) {
@@ -129,7 +134,7 @@ void loop(void) {
 
   if (success) {
     // Display some basic information about the card
-    Serial.println("Found an ISO14443A card");
+    Serial.println("Found a card");
     Serial.print("  UID Length: ");Serial.print(uidLength, DEC);Serial.println(" bytes");
     Serial.print("  UID Value: ");
     nfc.PrintHex(uid, uidLength);
