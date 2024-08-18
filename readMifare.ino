@@ -105,7 +105,7 @@ void setup(void) {
 unsigned long led1_on = 0;
 
 void loop(void) {
-  uint8_t success;
+
   uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
 
@@ -115,9 +115,15 @@ void loop(void) {
 
 #if 0
   success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+  Serial.println("Found a MIFARE card");
 #endif
 
+#if 0
   success = nfc.readPassiveTargetID(PN532_FELICA_212, uid, &uidLength);
+  Serial.println("Found a FELICA card");
+#endif
+
+  bool success = nfc.inAutoPoll();
 
   // If we found any cards, turn the status light on for a bit
   if (success) {
@@ -132,6 +138,7 @@ void loop(void) {
     digitalWrite(LED1, LOW);
   }
 
+#if 0
   if (success) {
     // Display some basic information about the card
     Serial.println("Found a card");
@@ -213,5 +220,5 @@ void loop(void) {
       }
     }
   }
+#endif
 }
-
