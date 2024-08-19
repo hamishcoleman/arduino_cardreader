@@ -103,11 +103,14 @@ void setup(void) {
 }
 
 unsigned long led1_on = 0;
+uint8_t lastfound = 0;
 
 void loop(void) {
 
   uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
   uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
+
+    uint8_t polldata[64];   // Buffer to store the poll results
 
   // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
   // 'uid' will be populated with the UID, and uidLength will indicate
@@ -123,20 +126,39 @@ void loop(void) {
   Serial.println("Found a FELICA card");
 #endif
 
-  bool success = nfc.inAutoPoll();
+    uint8_t found = nfc.inAutoPoll(polldata, sizeof(polldata));
 
-  // If we found any cards, turn the status light on for a bit
-  if (success) {
-    if (!led1_on) {
-      led1_on = millis();
-      digitalWrite(LED1, HIGH);
+    if (!found && lastfound) {
+        // Show that the card reader is clear of detected cards
+        Serial.println("clear");
     }
-  }
+    lastfound = found;
 
-  if (led1_on && (millis() - led1_on > 1000UL)) {
-    led1_on = 0;
-    digitalWrite(LED1, LOW);
-  }
+    // If we found any cards, turn the status light on for a bit
+    if (found) {
+        if (!led1_on) {
+            led1_on = millis();
+            digitalWrite(LED1, HIGH);
+        }
+    }
+
+    if (led1_on && (millis() - led1_on > 1000UL)) {
+        led1_on = 0;
+        digitalWrite(LED1, LOW);
+    }
+
+    uint8_t pos = 0;
+    while(found) {
+        uint8_t type = polldata[pos++];
+        uint8_t len = polldata[pos++];
+
+        Serial.print("type: ");
+        Serial.print(type, HEX);
+        Serial.println();
+
+        pos += len;
+        found--;
+    }
 
 #if 0
   if (success) {
