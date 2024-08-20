@@ -94,17 +94,16 @@ void hexdump(uint8_t *buf, uint8_t size) {
 }
 
 void setup(void) {
-  #ifndef ESP8266
+#ifndef ESP8266
     while (!Serial); // for Leonardo/Micro/Zero
-  #endif
-
-  pinMode(LED1, OUTPUT);
-  pinMode(LED2, OUTPUT);
-
-  Serial.begin(115200);
+#endif
+    Serial.begin(115200);
     packet_start();
     Serial.print("sketch=" __FILE__);
     packet_end();
+
+  pinMode(LED1, OUTPUT);
+  pinMode(LED2, OUTPUT);
 
   nfc.begin();
 
