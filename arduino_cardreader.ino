@@ -73,6 +73,26 @@ Adafruit_PN532 nfc(PN532_SS);
 #define LED1 7  // Intended to show status + activity (maybe green?)
 #define LED2 8  // Reserved for showing an error (maybe red?)
 
+#define packet_start()  Serial.print('\x02')
+#define packet_end()    Serial.println('\x04')
+
+// If only Serial.print(xyzzy, HEX) did leading zeros
+// (The lack of leading zeros has been raised before and they do not appear
+// to be interested in addressing it)
+void hexdump(uint8_t *buf, uint8_t size) {
+    char digits[] = "0123456789ABCDEF";
+    while(size) {
+        char ch = *buf;
+        char hi = (ch >> 4) & 0x0f;
+        char lo = ch & 0x0f;
+        Serial.print(digits[hi]);
+        Serial.print(digits[lo]);
+
+        buf++;
+        size--;
+    }
+}
+
 void setup(void) {
   #ifndef ESP8266
     while (!Serial); // for Leonardo/Micro/Zero
@@ -82,7 +102,9 @@ void setup(void) {
   pinMode(LED2, OUTPUT);
 
   Serial.begin(115200);
-  Serial.println("Hello!");
+    packet_start();
+    Serial.print("sketch=" __FILE__);
+    packet_end();
 
   nfc.begin();
 
@@ -128,9 +150,20 @@ void loop(void) {
 
     uint8_t found = nfc.inAutoPoll(polldata, sizeof(polldata));
 
+    if (found) {
+        // TODO: if reportmode includes rawall
+        packet_start();
+        Serial.print("raw=");
+        hexdump(polldata, sizeof(polldata));
+        packet_end();
+    }
+
     if (!found && lastfound) {
         // Show that the card reader is clear of detected cards
-        Serial.println("clear");
+        packet_start();
+        Serial.print("tag=NONE");
+        packet_end();
+        Serial.println()
     }
     lastfound = found;
 
@@ -151,6 +184,12 @@ void loop(void) {
     while(found) {
         uint8_t type = polldata[pos++];
         uint8_t len = polldata[pos++];
+
+        packet_start();
+        // TODO: if reportmode includes rawtag
+        Serial.print("rawtag=");
+        hexdump(&polldata[pos-2], len+2);
+        packet_end();
 
         Serial.print("type: ");
         Serial.print(type, HEX);
