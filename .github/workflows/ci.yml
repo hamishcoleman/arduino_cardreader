@@ -1,0 +1,29 @@
+---
+name: CI
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoketest:
+    name: Smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fix Checkout
+        run: |
+          git fetch --force --tags
+
+      - name: Setup environment
+        run: |
+          make bin/arduino-cli hack_install_core hack_install_lib
+
+      - name: Build
+        run: |
+          make all
