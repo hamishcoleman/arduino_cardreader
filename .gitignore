@@ -1,3 +1,10 @@
 
 # Tools downloaded to build this project
 bin/arduino-cli
+
+# Outputs generated during build
+arduino_cardreader.ino.eep
+arduino_cardreader.ino.elf
+arduino_cardreader.ino.hex
+arduino_cardreader.ino.with_bootloader.bin
+arduino_cardreader.ino.with_bootloader.hex
