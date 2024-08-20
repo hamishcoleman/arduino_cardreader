@@ -325,7 +325,7 @@ void loop(void) {
 
     }
 
-    if (Serial.available()) {
+    while (Serial.available()) {
         handle_serial();
     }
 }
