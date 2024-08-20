@@ -66,6 +66,7 @@ hack_install_lib:
 upload: $(SKETCH)
 	bin/arduino-cli compile --fqbn $(FQBN) --port $(PORT) --upload
 
+# TODO: deps on the lib?
 $(SKETCH).elf: $(SKETCH)
 	bin/arduino-cli compile --fqbn $(FQBN) --output-dir .
 
