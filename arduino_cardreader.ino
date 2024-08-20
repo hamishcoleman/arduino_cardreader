@@ -184,19 +184,70 @@ void loop(void) {
     while(found) {
         uint8_t type = polldata[pos++];
         uint8_t len = polldata[pos++];
-
-        packet_start();
-        // TODO: if reportmode includes rawtag
-        Serial.print("rawtag=");
-        hexdump(&polldata[pos-2], len+2);
-        packet_end();
-
-        Serial.print("type: ");
-        Serial.print(type, HEX);
-        Serial.println();
-
+        uint8_t *data = &polldata[pos];
         pos += len;
         found--;
+
+        bool nfcid_decoded = false;
+        uint8_t nfcidlength = 0;
+        uint8_t *nfcid;
+
+        switch (type) {
+            case 0:
+            case 1:
+            case 2:
+                // generic types are not possible
+                break;
+
+            case 0x10: // Mifare card,
+            case 0x20: // Passive 106 kbps ISO/IEC14443-4A,
+                // uint8_t tg = data[0]
+                // uint16_t sens_res = data[1,2];
+                // uint8_t sel_res = data[3];
+                nfcidlength = data[4];
+                nfcid = &data[5];
+                nfcid_decoded = true;
+                break;
+
+            case 0x11: // FeliCa 212 kbps card,
+            case 0x12: // FeliCa 424 kbps card,
+                // uint8_t tg = data[0]
+                // uint8_t pol_res = data[1]
+                nfcidlength = 8;
+                nfcid = &data[2];
+                nfcid_decoded = true;
+                break;
+
+/*
+            case 0x23: // Passive 106 kbps ISO/IEC14443-4B,
+            case 0x40: // DEP passive 106 kbps,
+            case 0x41: // DEP passive 212 kbps,
+            case 0x42: // DEP passive 424 kbps,
+            case 0x80: // DEP active 106 kbps,
+            case 0x81: // DEP active 212 kbps,
+            case 0x82: // DEP active 424 kbps.
+                break;
+*/
+        }
+
+        // TODO: the detected card type may not be best to include in ID
+        if (nfcid_decoded) {
+            packet_start();
+            Serial.print("tag=");
+            hexdump(&type, 1);
+            Serial.print("/");
+            hexdump(nfcid, nfcidlength);
+            packet_end();
+        }
+
+        // TODO: if reportmode includes rawtag or not nfcid_decoded
+        packet_start();
+        Serial.print("rawtag=");
+        hexdump(&type, 1);
+        hexdump(&len, 1);
+        hexdump(data, len);
+        packet_end();
+
     }
 
 #if 0
