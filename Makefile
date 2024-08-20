@@ -3,13 +3,18 @@
 #
 
 SKETCH := $(notdir $(PWD)).ino
-BOARD := arduino:avr:pro
+CORE := arduino:avr
+FQBN := $(CORE):pro
 PORT ?= /dev/ttyUSB0
 
-ARDUINO_CONFIG_FILE := arduino-cli.yaml
+# Ensure we start with a known config
+ARDUINO_CONFIG_FILE ?= arduino-cli.yaml
 export ARDUINO_CONFIG_FILE
 
-BOARD_FILENAME_SLUG := $(subst :,.,$(BOARD))
+# Since we are building with the submodule, we need to specify where it is
+ARDUINO_DIRECTORIES_USER ?= .
+export ARDUINO_DIRECTORIES_USER
+
 CLEAN_FILES += arduino_cardreader.ino.eep
 CLEAN_FILES += arduino_cardreader.ino.elf
 CLEAN_FILES += arduino_cardreader.ino.hex
@@ -35,6 +40,13 @@ bin/arduino-cli: /usr/bin/curl
 REALCLEAN_FILES += bin/arduino-cli
 
 # TODO:
+# - download to a known dir?
+# - add core to REALCLEAN?
+.PHONY: hack_install_core
+hack_install_core:
+	bin/arduino-cli core install $(CORE)
+
+# TODO:
 # - install required library:
 #   - automatically
 #   - in a sane directory
@@ -48,15 +60,14 @@ REALCLEAN_FILES += bin/arduino-cli
 
 .PHONY: hack_install_lib
 hack_install_lib:
-	mkdir -p ../libraries
-	git clone https://github.com/hamishcoleman/arduino_pn532 ../libraries/arduino_pn532
+	git submodule update --init
 
 .PHONY: upload
 upload: $(SKETCH)
-	bin/arduino-cli compile --fqbn $(BOARD) --port $(PORT) --upload
+	bin/arduino-cli compile --fqbn $(FQBN) --port $(PORT) --upload
 
 $(SKETCH).elf: $(SKETCH)
-	bin/arduino-cli compile --fqbn $(BOARD) --output-dir .
+	bin/arduino-cli compile --fqbn $(FQBN) --output-dir .
 
 .PHONY: clean
 clean:

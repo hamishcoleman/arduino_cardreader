@@ -1,0 +1,3 @@
+[submodule "libraries/arduino_pn532"]
+	path = libraries/arduino_pn532
+	url = ../arduino_pn532
