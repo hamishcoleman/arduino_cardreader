@@ -131,3 +131,29 @@ repeated.
 ## Example wiring:
 
 <img src="wiring_example.jpg" width=800/>
+
+## Expected usage
+
+- LED1 is anticipated to be GREEN
+- LED2 is anticipated to be RED
+
+| LED1 | LED2 | Meaning |
+| ---- | ---- | ------- |
+| off  | off  | standby |
+| blinking green | * | currently reading a card (turns off 500ms after card is gone) |
+| * | red | waiting for server (turns off after 3000ms, or when server replies) |
+| green | off | door is open (only when server is working) |
+| blinking green | blinking red | card denied (only when server is working) |
+
+Boot up status:
+| LED1 | LED2 | Meaning |
+| ---- | ---- | ------- |
+| green | red | bootup start |
+| off | red | RFID initialised |
+| off | off | bootup finished (500ms after bootup complete) |
+
+Client app
+- Waits for a tag= message
+- looks card up in database
+- If card good, sends LEDoff and LED1on commands
+- If card bad, sends LEDbothBlink commands
