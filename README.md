@@ -2,12 +2,28 @@ This simple sketch is intended to be used for a simple proximity card reader
 system.  For instance, for access to a hack space.
 
 ## Software Setup:
+
+### Arduino IDE
 - You will need the correct PN532 library:
     https://github.com/hamishcoleman/arduino_pn532
   Make this library available to your arduino environment in its usual ways.
   (Note that if you have the upstream Adafruit_PN532 library, then there will
   be conflicts, so remove the other one first)
 - This sketch should compile and verify cleanly
+
+### Building from the CLI
+In order to support traditional software development and make it easier to
+build CI systems, this project also has a Makefile to build it.
+
+Install the dev tools and required library:
+```
+make bin/arduino-cli hack_install_core hack_install_lib
+```
+
+Other build targets:
+- `make all`
+- `make clean`
+- `make upload`
 
 ## Hardware Setup:
 - Get a PN532 module (many suitable are available online)
