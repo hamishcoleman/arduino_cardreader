@@ -39,13 +39,10 @@ Found chip PN532
 Firmware ver. 1.4
 Waiting for a Card ...
 tag=20/0435178A597532
-rawtag=201201034420070435178A597532067577810280
 tag=NONE
 
 tag=20/AF8E8E13
-rawtag=20190100002004AF8E8E13107880A0028684665257453250524F4D
 tag=10/E2E2F98B
-rawtag=10090200040804E2E2A23F
 tag=NONE
 
 ```
@@ -93,15 +90,17 @@ this card type is an internal PN532 identifier, which probably needs to change.
 
 ### Message "rawtag="
 
-This status output allows for possible further processing of the card data,
-sending a hexdump of the raw data for this tag.  In the future, this
-message will be optional and only output when turned on.
+When enabled, this status output allows for possible further processing of the
+card data, sending a hexdump of the raw data for this tag.
+
+This message defaults to disabled and needs to be enabled with the "t" command.
 
 ### Message "raw="
 
-This status output is for detailed debugging, sending a large chunk of the
-InAutoPoll response PDU is output.  In the future, this message will be
-optional and only output when turned on.
+When enabled, this status output is used for detailed debugging, sending a
+large chunk of the InAutoPoll response PDU is output.
+
+This message defaults to disabled and needs to be enabled with the "r" command.
 
 ### Commands
 
@@ -120,6 +119,10 @@ and ending with a `Ctrl-D`
 | 5 | Blinks LED1 out of phase |
 | 6 | Blinks LED2 out of phase |
 | 7 | Blinks both LEDs, one in each phase |
+| r | Enable raw= messages |
+| R | Disable raw= messages |
+| t | Enable rawtag= messages |
+| T | Disable rawtag= messages |
 
 Note: The led status will last for 20 seconds before being turned back off
 again.  If the output is needed for longer, then the command needs to be

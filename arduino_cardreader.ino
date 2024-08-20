@@ -22,6 +22,10 @@
 // pin.
 Adafruit_PN532 nfc(PN532_SS);
 
+#define OUTPUT_RAWALL   1   // Always generate raw= messages
+#define OUTPUT_RAWTAG   2   // Always generate rawtag= messages
+uint8_t output_raw = 0;
+
 #define LED1 7  // Intended to show status + activity (maybe green?)
 #define LED2 8  // Reserved for showing an error (maybe red?)
 
@@ -138,6 +142,18 @@ void handle_serial_cmd(uint8_t *cmd, uint8_t len) {
             led2.mode = LED_MODE_BLINK2;
             led2.next_state_millis = millis() + 20000;
             return;
+        case 'r':
+            output_raw |= OUTPUT_RAWALL;
+            return;
+        case 'R':
+            output_raw &= ~OUTPUT_RAWALL;
+            return;
+        case 't':
+            output_raw |= OUTPUT_RAWTAG;
+            return;
+        case 'T':
+            output_raw &= ~OUTPUT_RAWTAG;
+            return;
     }
 }
 
@@ -232,27 +248,31 @@ void loop(void) {
     uint8_t polldata[64];   // Buffer to store the poll results
     uint8_t found = nfc.inAutoPoll(polldata, sizeof(polldata));
 
-    if (found) {
-        // TODO: if reportmode includes rawall
+    if (!found) {
+        if (lastfound) {
+            // Show that the card reader is clear of detected cards
+            packet_start();
+            Serial.print("tag=NONE");
+            packet_end();
+            Serial.println();
+            lastfound = 0;
+        }
+        return;
+    }
+    lastfound = found;
+
+    // we found at least one card, blink the status light for a bit
+    led1.mode = LED_MODE_BLINK1;
+    led1.next_state_millis = millis() + 500;
+    led2.mode = LED_MODE_ON;
+    led2.next_state_millis = millis() + 3000;
+
+    if (output_raw & OUTPUT_RAWALL) {
+        // only output message if debugging output is on
         packet_start();
         Serial.print("raw=");
         hexdump(polldata, sizeof(polldata));
         packet_end();
-    }
-
-    if (!found && lastfound) {
-        // Show that the card reader is clear of detected cards
-        packet_start();
-        Serial.print("tag=NONE");
-        packet_end();
-        Serial.println();
-    }
-    lastfound = found;
-
-    // If we found any cards, blink the status light for a bit
-    if (found) {
-        led1.mode = LED_MODE_BLINK1;
-        led1.next_state_millis = millis() + 500;
     }
 
     uint8_t pos = 0;
@@ -315,14 +335,15 @@ void loop(void) {
             packet_end();
         }
 
-        // TODO: if reportmode includes rawtag or not nfcid_decoded
-        packet_start();
-        Serial.print("rawtag=");
-        hexdump(&type, 1);
-        hexdump(&len, 1);
-        hexdump(data, len);
-        packet_end();
-
+        // Always do a raw dump if we didnt understand the data
+        if ((!nfcid_decoded) || (output_raw & OUTPUT_RAWTAG)) {
+            packet_start();
+            Serial.print("rawtag=");
+            hexdump(&type, 1);
+            hexdump(&len, 1);
+            hexdump(data, len);
+            packet_end();
+        }
     }
 
     while (Serial.available()) {
