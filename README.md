@@ -54,12 +54,12 @@ This example shows two reads.  Firstly, an oyster card is held up and then
 removed.  Secondly, both a Translink Go card and a Shenzhen metro card are
 held up at the same time - showing simultaneous detection and reading.
 
-## Parsing the output
+## Communications Protocol
 
-The output is intended to be both useful for humans to view and debug and
-simple for a machine to reliably parse the data.
+All communications (both input and output) are intended to be both useful for
+humans to view and debug and simple for a machine to reliably parse the data.
 
-Any message intended for machine parsing is framed with a start and a stop
+All messages (both input and output) are framed with a start and a stop
 character.  The message starts with a STX (0x02) char and ends with a EOT
 (0x04) char.
 
@@ -77,8 +77,8 @@ This format is expected to evolve after more testing.
 
 ### Message "tag="
 
-The main output is the "tag=" message.  This shows the unique hex ID determined
-from the cards presented to the reader.
+This status output is the main use for this project.  This shows the unique hex
+ID determined from the cards presented to the reader.
 
 The special tag "NONE" indicates that there is no longer any card in front
 of the reader.
@@ -93,14 +93,37 @@ this card type is an internal PN532 identifier, which probably needs to change.
 
 ### Message "rawtag="
 
-To allow possible further processing of the card data, a hexdump of the raw
-data for this tag is output.  In the future, this message will be optional and
-only output when turned on.
+This status output allows for possible further processing of the card data,
+sending a hexdump of the raw data for this tag.  In the future, this
+message will be optional and only output when turned on.
 
 ### Message "raw="
 
-For detailed debugging, a large chunk of the InAutoPoll response PDU is output.
-In the future, this message will be optional and only output when turned on.
+This status output is for detailed debugging, sending a large chunk of the
+InAutoPoll response PDU is output.  In the future, this message will be
+optional and only output when turned on.
+
+### Commands
+
+A number of simple commands can be sent to manage the device.  When using a
+serial terminal, the message framing can be added by starting with a `Ctrl-B`
+and ending with a `Ctrl-D`
+
+| command | Action |
+| ------- | ------ |
+| H | Sends a quick hello debug text back to the user |
+| 0 | Turns off both LEDs |
+| 1 | Turns LED1 on |
+| 2 | Turns LED2 on |
+| 3 | Blinks LED1 |
+| 4 | Blinks LED2 |
+| 5 | Blinks LED1 out of phase |
+| 6 | Blinks LED2 out of phase |
+| 7 | Blinks both LEDs, one in each phase |
+
+Note: The led status will last for 20 seconds before being turned back off
+again.  If the output is needed for longer, then the command needs to be
+repeated.
 
 ## Example wiring:
 
