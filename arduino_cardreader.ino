@@ -163,7 +163,7 @@ void loop(void) {
         packet_start();
         Serial.print("tag=NONE");
         packet_end();
-        Serial.println()
+        Serial.println();
     }
     lastfound = found;
 
