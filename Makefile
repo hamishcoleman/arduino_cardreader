@@ -4,7 +4,7 @@
 
 SKETCH := $(notdir $(PWD)).ino
 CORE := arduino:avr@1.8.6
-FQBN := arduino:avr:pro
+FQBN ?= arduino:avr:pro
 PORT ?= /dev/ttyUSB0
 
 # Ensure we start with a known config
