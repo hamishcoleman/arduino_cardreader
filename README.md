@@ -90,10 +90,21 @@ this card type is an internal PN532 identifier, which probably needs to change.
 
 ### Message "rawtag="
 
-When enabled, this status output allows for possible further processing of the
+If the card type (see prefix mentioned for tag=) cannot be determined, the
+rawtag= message is output.  This message can also be unconditionally enabled
+for output.  This status output allows for possible further processing of the
 card data, sending a hexdump of the raw data for this tag.
 
-This message defaults to disabled and needs to be enabled with the "t" command.
+The unconditional enabling of this message defaults to disabled and needs to be
+enabled with the "t" command.
+
+The exact format of this message is determined by the contents of the buffer
+that the PN532 hardware returns and the documentation for that should be
+checked for full details.  The basic format is one byte for "type", one byte
+for "len" and then len bytes of the card data.
+
+Note that erroneous or partial card reads have been known to show up as type
+0x01
 
 ### Message "raw="
 

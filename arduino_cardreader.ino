@@ -292,6 +292,14 @@ void loop(void) {
             case 1:
             case 2:
                 // generic types are not possible
+                // At the least, type 1 has been seen when an interrupted or
+                // partial read is done (This was able to be replicated by
+                // removing the card from the reader quickly)
+                // - for two cards with 7 byte UIDs, when this occured the
+                //   raw buffer was 0103442007
+                // - for two cards with 4 byte UIDs, when this occurec the
+                //   raw buffer was 0100
+
                 break;
 
             case 0x10: // Mifare card,
