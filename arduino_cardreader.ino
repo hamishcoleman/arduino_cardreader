@@ -194,6 +194,31 @@ void handle_serial() {
     cmd[cmdpos++] = ch;
 }
 
+uint8_t do_iso14443a_apps(uint8_t tg, uint8_t *res, uint8_t reslen) {
+    uint8_t cmd[1];
+    cmd[0] = 0x6a;   // Get Application IDs
+
+    // TODO: set private nfc._inListedTag == tg;
+    bool status = nfc.inDataExchange(cmd,1,res,&reslen);
+    if (!status) {
+        return 0;
+    }
+
+    // TODO:
+    // We blithely assume that there are no continuation packets for this data
+
+    return reslen;
+}
+
+void do_iso14443a(uint8_t tg) {
+    uint8_t res[10];
+
+    uint8_t reslen = do_iso14443a_apps(tg, res, sizeof(res));
+    Serial.print("apps:");
+    hexdump(res, reslen);
+    Serial.println();
+}
+
 void setup(void) {
 #ifndef ESP8266
     while (!Serial); // for Leonardo/Micro/Zero
@@ -290,6 +315,8 @@ void loop(void) {
         pos += len;
         found--;
 
+        uint8_t tg = data[0];
+
         bool nfcid_decoded = false;
         uint8_t nfcidlength = 0;
         uint8_t *nfcid;
@@ -311,7 +338,6 @@ void loop(void) {
 
             case TYPE_MIFARE:
             case TYPE_ISO14443A:
-                // uint8_t tg = data[0]
                 // uint16_t sens_res = data[1,2];
                 // uint8_t sel_res = data[3];
                 nfcidlength = data[4];
@@ -367,6 +393,21 @@ void loop(void) {
             hexdump(&len, 1);
             hexdump(data, len);
             packet_end();
+        }
+
+        if (type == TYPE_ISO14443A && nfcidlength != 4) {
+            // I have found nothing clearly documenting this, but some cards
+            // using the ISO14443A discovery protocol dont actually respond
+            // to any of the standard card function requests
+            //
+            // error datapoints:
+            // ATQA=0008, len=4, apps returns 6700
+            // ATQA=0044, len=7, apps returns 6700
+            //
+            // all working samples:
+            // ATQA=0344, len=7, apps returns 00xxxxxx[yyyyyy]
+
+            do_iso14443a(tg);
         }
     }
 
