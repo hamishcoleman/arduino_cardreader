@@ -282,6 +282,25 @@ void do_iso14443a_clipper(uint8_t tg) {
     Serial.print(buf_be2hl(&buf[1]));
 }
 
+void do_iso14443a_opal(uint8_t tg) {
+    Serial.print("opal/");
+
+    if (!iso14443a_select_app(tg, 0x314553)) {
+        return;
+    }
+
+    uint8_t buf[6];
+    if (iso14443a_read_file(tg,7,0,5,buf,sizeof(buf)) != 6) {
+        return;
+    }
+
+    // TODO: what if the uint32 is >999999999 ??
+    Serial.print("308522");
+    serial_intzeropad(buf_le2hl(&buf[1]),9);
+
+    Serial.print(buf[5] & 0xf);
+}
+
 void do_iso14443a_myki(uint8_t tg) {
     Serial.print("myki/");
 
@@ -345,7 +364,7 @@ void do_iso14443a(uint8_t tg) {
                 do_iso14443a_myki(tg);
                 break;
             case 0x314553:
-                Serial.print("Opal");
+                do_iso14443a_opal(tg);
                 break;
             case 0x9011f2:
                 do_iso14443a_clipper(tg);
