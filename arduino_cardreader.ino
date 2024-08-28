@@ -333,12 +333,21 @@ void loop(void) {
 */
         }
 
-        // TODO: the detected card type may not be best to include in ID
         if (nfcid_decoded) {
             packet_start();
             Serial.print("tag=");
-            hexdump(&type, 1);
-            Serial.print("/");
+            switch(type) {
+                case 0x10:
+                    Serial.print("mifare/");
+                    break;
+                case 0x20:
+                    Serial.print("iso14443/");
+                    break;
+                case 0x11:
+                case 0x12:
+                    Serial.print("felica/");
+                    break;
+            }
             hexdump(nfcid, nfcidlength);
             packet_end();
         }
