@@ -22,6 +22,13 @@
 // pin.
 Adafruit_PN532 nfc(PN532_SS);
 
+// This list of possible types for InAutoPoll results was taken from the table
+// in 7.3.13 of the Pn532 User Manual
+#define TYPE_MIFARE     0x10
+#define TYPE_FELICA_212 0x11
+#define TYPE_FELICA_424 0x12
+#define TYPE_ISO14443A  0x20
+
 #define OUTPUT_RAWALL   1   // Always generate raw= messages
 #define OUTPUT_RAWTAG   2   // Always generate rawtag= messages
 uint8_t output_flags = 0;
@@ -302,8 +309,8 @@ void loop(void) {
 
                 break;
 
-            case 0x10: // Mifare card,
-            case 0x20: // Passive 106 kbps ISO/IEC14443-4A,
+            case TYPE_MIFARE:
+            case TYPE_ISO14443A:
                 // uint8_t tg = data[0]
                 // uint16_t sens_res = data[1,2];
                 // uint8_t sel_res = data[3];
@@ -312,8 +319,8 @@ void loop(void) {
                 nfcid_decoded = true;
                 break;
 
-            case 0x11: // FeliCa 212 kbps card,
-            case 0x12: // FeliCa 424 kbps card,
+            case TYPE_FELICA_212:
+            case TYPE_FELICA_424:
                 // uint8_t tg = data[0]
                 // uint8_t pol_res = data[1]
                 nfcidlength = 8;
@@ -337,14 +344,14 @@ void loop(void) {
             packet_start();
             Serial.print("tag=");
             switch(type) {
-                case 0x10:
+                case TYPE_MIFARE:
                     Serial.print("mifare/");
                     break;
-                case 0x20:
-                    Serial.print("iso14443/");
+                case TYPE_ISO14443A:
+                    Serial.print("iso14443a/");
                     break;
-                case 0x11:
-                case 0x12:
+                case TYPE_FELICA_212:
+                case TYPE_FELICA_424:
                     Serial.print("felica/");
                     break;
             }
