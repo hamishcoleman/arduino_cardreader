@@ -105,6 +105,46 @@ void hexdump(uint8_t *buf, uint8_t size) {
     }
 }
 
+void serial_intzeropad(uint32_t i, uint8_t zeropad) {
+    uint8_t digits = 0;
+    uint32_t acc = i;
+    while(acc) {
+        acc /= 10;
+        digits ++;
+    }
+    while(digits < zeropad) {
+        Serial.print('0');
+        digits ++;
+    }
+    Serial.print(i);
+}
+
+uint32_t buf_be2hl(uint8_t *buf) {
+    uint32_t result;
+
+    result = buf[0];
+    result <<= 8;
+    result |= buf[1];
+    result <<= 8;
+    result |= buf[2];
+    result <<= 8;
+    result |= buf[3];
+    return result;
+}
+
+uint32_t buf_le2hl(uint8_t *buf) {
+    uint32_t result;
+
+    result = buf[3];
+    result <<= 8;
+    result |= buf[2];
+    result <<= 8;
+    result |= buf[1];
+    result <<= 8;
+    result |= buf[0];
+    return result;
+}
+
 void handle_serial_cmd(uint8_t *cmd, uint8_t len) {
     // Only trivial one char commands are implemented
     if (len != 1) {
@@ -194,46 +234,72 @@ void handle_serial() {
     cmd[cmdpos++] = ch;
 }
 
-void do_iso14443a_clipper(uint8_t tg) {
-    uint8_t cmd[8];
+bool iso14443a_select_app(uint8_t tg, uint32_t app) {
+    uint8_t cmd[4];
     cmd[0] = 0x5a;   // Select Application
-    cmd[1] = 0x90;
-    cmd[2] = 0x11;
-    cmd[3] = 0xf2;
+    cmd[1] = (app & 0xff0000) >> 16;
+    cmd[2] = (app & 0xff00) >> 8;
+    cmd[3] = (app & 0xff);
     uint8_t reslen = sizeof(cmd);
 
-    // TODO: set private nfc._inListedTag == tg;
+    // FIXME: set private nfc._inListedTag == tg;
     if (!nfc.inDataExchange(cmd,4,cmd,&reslen)) {
-        return;
+        return false;
     }
+    return true;
+}
 
+uint8_t iso14443a_read_file(uint8_t tg, uint8_t file, uint8_t offset, uint8_t size, uint8_t *buf, uint8_t buflen) {
+    uint8_t cmd[8];
     cmd[0] = 0xbd;  // Read Data
-    cmd[1] = 8;     // File no
-    cmd[2] = 1;
+    cmd[1] = file;  // File no
+    cmd[2] = offset;
     cmd[3] = 0;
     cmd[4] = 0;     // read offset high byte
-    cmd[5] = 4;
+    cmd[5] = size;
     cmd[6] = 0;
     cmd[7] = 0;     // read size high byte
 
-    reslen = sizeof(cmd);
-    // TODO: set private nfc._inListedTag == tg;
-    if (!nfc.inDataExchange(cmd,8,cmd,&reslen)) {
+    // FIXME: set private nfc._inListedTag == tg;
+    if (!nfc.inDataExchange(cmd,8,buf,&buflen)) {
+        return 0;
+    }
+    return buflen;
+}
+
+void do_iso14443a_clipper(uint8_t tg) {
+    Serial.print("clipper/");
+
+    if (!iso14443a_select_app(tg, 0x9011f2)) {
         return;
     }
 
-    uint32_t serial;
+    uint8_t buf[8];
+    if (iso14443a_read_file(tg,8,1,4,buf,sizeof(buf)) != 5) {
+        return;
+    }
 
-    serial = cmd[1];
-    serial <<= 8;
-    serial |= cmd[2];
-    serial <<= 8;
-    serial |= cmd[3];
-    serial <<= 8;
-    serial |= cmd[4];
+    Serial.print(buf_be2hl(&buf[1]));
+}
 
-    Serial.print("Clipper/");
-    Serial.print(serial);
+void do_iso14443a_myki(uint8_t tg) {
+    Serial.print("myki/");
+
+    if (!iso14443a_select_app(tg, 0x11F2)) {
+        return;
+    }
+
+    uint8_t buf[10];
+    if (iso14443a_read_file(tg,0xf,0,8,buf,sizeof(buf)) != 9) {
+        return;
+    }
+
+    // TODO: what if the second uint32 is >99999999 ??
+    serial_intzeropad(buf_le2hl(&buf[1]),6);
+    serial_intzeropad(buf_le2hl(&buf[5]),8);
+
+    // TODO: calculating the Luhn check digit would be annoying
+    Serial.print('x');
 }
 
 uint8_t do_iso14443a_apps(uint8_t tg, uint8_t *res, uint8_t reslen) {
@@ -272,20 +338,20 @@ void do_iso14443a(uint8_t tg) {
         app <<= 8;
         app |= res[pos++];
 
+        packet_start();
+        Serial.print("serial=");
         switch(app) {
             case 0x11f2:
-                Serial.println("Myki");
+                do_iso14443a_myki(tg);
                 break;
             case 0x314553:
-                Serial.println("Opal");
+                Serial.print("Opal");
                 break;
             case 0x9011f2:
-                packet_start();
-                Serial.print("serial=");
                 do_iso14443a_clipper(tg);
-                packet_end();
                 break;
         }
+        packet_end();
     }
 }
 
