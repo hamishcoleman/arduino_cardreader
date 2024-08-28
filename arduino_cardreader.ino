@@ -24,7 +24,7 @@ Adafruit_PN532 nfc(PN532_SS);
 
 #define OUTPUT_RAWALL   1   // Always generate raw= messages
 #define OUTPUT_RAWTAG   2   // Always generate rawtag= messages
-uint8_t output_raw = 0;
+uint8_t output_flags = 0;
 
 #define LED1 7  // Intended to show status + activity (maybe green?)
 #define LED2 8  // Reserved for showing an error (maybe red?)
@@ -143,16 +143,16 @@ void handle_serial_cmd(uint8_t *cmd, uint8_t len) {
             led2.next_state_millis = millis() + 20000;
             return;
         case 'r':
-            output_raw |= OUTPUT_RAWALL;
+            output_flags |= OUTPUT_RAWALL;
             return;
         case 'R':
-            output_raw &= ~OUTPUT_RAWALL;
+            output_flags &= ~OUTPUT_RAWALL;
             return;
         case 't':
-            output_raw |= OUTPUT_RAWTAG;
+            output_flags |= OUTPUT_RAWTAG;
             return;
         case 'T':
-            output_raw &= ~OUTPUT_RAWTAG;
+            output_flags &= ~OUTPUT_RAWTAG;
             return;
     }
 }
@@ -267,7 +267,7 @@ void loop(void) {
     led2.mode = LED_MODE_ON;
     led2.next_state_millis = millis() + 3000;
 
-    if (output_raw & OUTPUT_RAWALL) {
+    if (output_flags & OUTPUT_RAWALL) {
         // only output message if debugging output is on
         packet_start();
         Serial.print("raw=");
@@ -353,7 +353,7 @@ void loop(void) {
         }
 
         // Always do a raw dump if we didnt understand the data
-        if ((!nfcid_decoded) || (output_raw & OUTPUT_RAWTAG)) {
+        if ((!nfcid_decoded) || (output_flags & OUTPUT_RAWTAG)) {
             packet_start();
             Serial.print("rawtag=");
             hexdump(&type, 1);
