@@ -194,6 +194,48 @@ void handle_serial() {
     cmd[cmdpos++] = ch;
 }
 
+void do_iso14443a_clipper(uint8_t tg) {
+    uint8_t cmd[8];
+    cmd[0] = 0x5a;   // Select Application
+    cmd[1] = 0x90;
+    cmd[2] = 0x11;
+    cmd[3] = 0xf2;
+    uint8_t reslen = sizeof(cmd);
+
+    // TODO: set private nfc._inListedTag == tg;
+    if (!nfc.inDataExchange(cmd,4,cmd,&reslen)) {
+        return;
+    }
+
+    cmd[0] = 0xbd;  // Read Data
+    cmd[1] = 8;     // File no
+    cmd[2] = 1;
+    cmd[3] = 0;
+    cmd[4] = 0;     // read offset high byte
+    cmd[5] = 4;
+    cmd[6] = 0;
+    cmd[7] = 0;     // read size high byte
+
+    reslen = sizeof(cmd);
+    // TODO: set private nfc._inListedTag == tg;
+    if (!nfc.inDataExchange(cmd,8,cmd,&reslen)) {
+        return;
+    }
+
+    uint32_t serial;
+
+    serial = cmd[1];
+    serial <<= 8;
+    serial |= cmd[2];
+    serial <<= 8;
+    serial |= cmd[3];
+    serial <<= 8;
+    serial |= cmd[4];
+
+    Serial.print("Clipper/");
+    Serial.print(serial);
+}
+
 uint8_t do_iso14443a_apps(uint8_t tg, uint8_t *res, uint8_t reslen) {
     uint8_t cmd[1];
     cmd[0] = 0x6a;   // Get Application IDs
@@ -214,9 +256,37 @@ void do_iso14443a(uint8_t tg) {
     uint8_t res[10];
 
     uint8_t reslen = do_iso14443a_apps(tg, res, sizeof(res));
-    Serial.print("apps:");
-    hexdump(res, reslen);
-    Serial.println();
+    if (output_flags & OUTPUT_RAWALL) {
+        packet_start();
+        Serial.print("apps=");
+        hexdump(res, reslen);
+        packet_end();
+    }
+
+    uint8_t pos = 1;
+    while(pos < reslen) {
+        uint32_t app;
+        app = res[pos++];
+        app <<= 8;
+        app |= res[pos++];
+        app <<= 8;
+        app |= res[pos++];
+
+        switch(app) {
+            case 0x11f2:
+                Serial.println("Myki");
+                break;
+            case 0x314553:
+                Serial.println("Opal");
+                break;
+            case 0x9011f2:
+                packet_start();
+                Serial.print("serial=");
+                do_iso14443a_clipper(tg);
+                packet_end();
+                break;
+        }
+    }
 }
 
 void setup(void) {
