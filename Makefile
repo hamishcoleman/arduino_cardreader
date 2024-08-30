@@ -9,6 +9,7 @@ PORT ?= /dev/ttyUSB0
 
 DEPS += byteops.h byteops.ino
 DEPS += ledtimer.h ledtimer.ino
+DEPS += card_iso14443.h card_iso14443.ino
 
 # Ensure we start with a known config
 ARDUINO_CONFIG_FILE ?= arduino-cli.yaml
