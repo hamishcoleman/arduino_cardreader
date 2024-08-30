@@ -7,6 +7,8 @@ CORE := arduino:avr@1.8.6
 FQBN ?= arduino:avr:pro
 PORT ?= /dev/ttyUSB0
 
+DEPS := byteops.h byteops.ino
+
 # Ensure we start with a known config
 ARDUINO_CONFIG_FILE ?= arduino-cli.yaml
 export ARDUINO_CONFIG_FILE
@@ -67,7 +69,7 @@ upload: $(SKETCH)
 	bin/arduino-cli compile --fqbn $(FQBN) --port $(PORT) --upload
 
 # TODO: deps on the lib?
-$(SKETCH).elf: $(SKETCH)
+$(SKETCH).elf: $(SKETCH) $(DEPS)
 	bin/arduino-cli compile --fqbn $(FQBN) --output-dir .
 
 .PHONY: clean
