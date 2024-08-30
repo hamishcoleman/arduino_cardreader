@@ -15,6 +15,7 @@
 #include <Adafruit_PN532.h>
 
 #include "byteops.h"
+#include "ledtimer.h"
 
 #define PN532_SS   (10)
 
@@ -38,17 +39,6 @@ uint8_t output_flags = 0;
 #define LED1 7  // Intended to show status + activity (maybe green?)
 #define LED2 8  // Reserved for showing an error (maybe red?)
 
-#define LED_MODE_OFF    0
-#define LED_MODE_BLINK1 1   // phase1
-#define LED_MODE_BLINK2 2   // phase2
-#define LED_MODE_ON     9
-
-struct led_status {
-    uint8_t pin;
-    uint8_t mode;
-    unsigned long next_state_millis;
-};
-
 struct led_status led1 = {
     .pin = LED1,
     .mode = LED_MODE_OFF,
@@ -57,35 +47,6 @@ struct led_status led2 = {
     .pin = LED2,
     .mode = LED_MODE_ON,
 };
-
-void led_update(struct led_status *led) {
-    unsigned long now = millis();
-    if ((led->next_state_millis - now) & 0x80000000) {
-        // The next state is always "off"
-        led->mode == LED_MODE_OFF;
-        digitalWrite(led->pin, LOW);
-        return;
-    }
-
-    switch (led->mode) {
-        case LED_MODE_OFF:
-            digitalWrite(led->pin, LOW);
-            // off is off is off, so skip next state processing
-            return;
-
-        case LED_MODE_ON:
-            digitalWrite(led->pin, HIGH);
-            break;
-
-        case LED_MODE_BLINK1:
-            digitalWrite(led->pin, (now & 0x40)?HIGH:LOW);
-            break;
-
-        case LED_MODE_BLINK2:
-            digitalWrite(led->pin, (now & 0x40)?LOW:HIGH);
-            break;
-    }
-}
 
 #define packet_start()  Serial.print('\x02')
 #define packet_end()    Serial.println('\x04')
@@ -353,25 +314,12 @@ void setup(void) {
     // Signal PN532 initialized by turning off led1
     digitalWrite(led1.pin, LOW);
 
-    // Configure timer1 to manage the led status, with a 100ms tick
-    cli();
-    TCCR1A = 0;
-    TCCR1B = (1 << WGM12) | (1 << CS12);
-    TCNT1 = 0;
-    OCR1A = 6250;
-    TIMSK1 = (1 << OCIE1A);
-    TIFR1 |= (1 << OCF1A);
-    sei();
+    ledtimer_init();
 
     // Show the mainloop is ticking by turning off led2 shortly
     led2.next_state_millis = millis() + 500;
 
   Serial.println("Waiting for a Card ...");
-}
-
-ISR(TIMER1_COMPA_vect) {
-    led_update(&led1);
-    led_update(&led2);
 }
 
 uint8_t lastfound = 0;
