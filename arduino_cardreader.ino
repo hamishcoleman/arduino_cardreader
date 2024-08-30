@@ -76,7 +76,6 @@ void setup(void) {
   Serial.println("Waiting for a Card ...");
 }
 
-uint8_t lastfound = 0;
 uint8_t last_uidlen = 0;
 uint8_t last_uid[12];
 
@@ -89,17 +88,24 @@ void loop(void) {
     uint8_t found = nfc.inAutoPoll(polldata, sizeof(polldata));
 
     if (!found) {
-        if (lastfound) {
+        if (last_uidlen) {
             // Show that the card reader is clear of detected cards
             packet_start();
             Serial.print("tag=NONE");
             packet_end();
             Serial.println();
-            lastfound = 0;
+            last_uidlen = 0;
+            memset(last_uid, 0, sizeof(last_uid));
         }
         return;
     }
-    lastfound = found;
+
+    // We overload the uidlen here - for non decoded cards, the len will end
+    // up being 1 or 2, which should still not match the deduplication logic
+    // while at the same time working with the tag=NONE logic.
+    if (!last_uidlen) {
+        last_uidlen = found;
+    }
 
     // we found at least one card, blink the status light for a bit
     led1.mode = LED_MODE_BLINK1;
