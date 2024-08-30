@@ -93,8 +93,14 @@ void setup(void) {
 }
 
 uint8_t lastfound = 0;
+uint8_t last_uidlen = 0;
+uint8_t last_uid[12];
 
 void loop(void) {
+    while (Serial.available()) {
+        handle_serial();
+    }
+
     uint8_t polldata[64];   // Buffer to store the poll results
     uint8_t found = nfc.inAutoPoll(polldata, sizeof(polldata));
 
@@ -156,8 +162,8 @@ void loop(void) {
 
             case TYPE_MIFARE:
             case TYPE_ISO14443A:
-                // uint16_t sens_res = data[1,2];
-                // uint8_t sel_res = data[3];
+                // uint16_t sens_res = data[1,2];   ATQA
+                // uint8_t sel_res = data[3];       SAK
                 nfcidlength = data[4];
                 nfcid = &data[5];
                 nfcid_decoded = true;
@@ -185,6 +191,11 @@ void loop(void) {
         }
 
         if (nfcid_decoded) {
+            if ((last_uidlen==nfcidlength) && (memcmp(last_uid,nfcid,nfcidlength)==0)) {
+                // Skip repeatly processing the same card
+                return;
+            }
+
             packet_start();
             Serial.print("tag=");
             switch(type) {
@@ -201,6 +212,8 @@ void loop(void) {
             }
             hexdump(nfcid, nfcidlength);
             packet_end();
+            last_uidlen=nfcidlength;
+            memcpy(last_uid, nfcid, nfcidlength);
         }
 
         // Always do a raw dump if we didnt understand the data
@@ -227,9 +240,6 @@ void loop(void) {
 
             do_iso14443a(tg);
         }
-    }
 
-    while (Serial.available()) {
-        handle_serial();
     }
 }

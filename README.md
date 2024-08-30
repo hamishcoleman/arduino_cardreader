@@ -80,9 +80,8 @@ ID determined from the cards presented to the reader.
 The special tag "NONE" indicates that there is no longer any card in front
 of the reader.
 
-Currently, if a card is held to the reader for an extended time, this message
-will repeat for as long as the card is held up - this may change to avoid
-repeating identical values in the future.
+If a card is held to the reader for an extended time, this message will not
+repeat - once the card is removed from the reader, the NONE tag will be output.
 
 The card tag is prefixed with the name of the card type to keep the (sometimes
 quite small) ID name space separate for each type of RFID hardware.
