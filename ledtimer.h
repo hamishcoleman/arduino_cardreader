@@ -19,8 +19,7 @@ struct led_status {
     unsigned long next_state_millis;
 };
 
-extern struct led_status led1;
-extern struct led_status led2;
+extern struct led_status led[2];
 
 void ledtimer_init();
 

@@ -9,13 +9,15 @@
 #include <Arduino.h>
 #include "ledtimer.h"
 
-struct led_status led1 = {
-    .pin = LED_BUILTIN,
-    .mode = LED_MODE_OFF,
-};
-struct led_status led2 = {
-    .pin = LED_BUILTIN,
-    .mode = LED_MODE_OFF,
+struct led_status led[2] = {
+    {
+        .pin = LED_BUILTIN,
+        .mode = LED_MODE_OFF,
+    },
+    {
+        .pin = LED_BUILTIN,
+        .mode = LED_MODE_OFF,
+    },
 };
 
 void ledtimer_init() {
@@ -61,7 +63,7 @@ static void led_update(struct led_status *led) {
 
 ISR(TIMER1_COMPA_vect) {
     // TODO: dont hardcode to two devices
-    led_update(&led1);
-    led_update(&led2);
+    led_update(&led[0]);
+    led_update(&led[1]);
 }
 

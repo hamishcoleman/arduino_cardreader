@@ -20,38 +20,38 @@ static void handle_serial_cmd(uint8_t *cmd, uint8_t len) {
             Serial.println("Hello");
             return;
         case '0':
-            led1.mode = LED_MODE_OFF;
-            led2.mode = LED_MODE_OFF;
+            led[0].mode = LED_MODE_OFF;
+            led[1].mode = LED_MODE_OFF;
             return;
         case '1':
-            led1.mode = LED_MODE_ON;
-            led1.next_state_millis = millis() + 20000;
+            led[0].mode = LED_MODE_ON;
+            led[0].next_state_millis = millis() + 20000;
             return;
         case '2':
-            led2.mode = LED_MODE_ON;
-            led2.next_state_millis = millis() + 20000;
+            led[1].mode = LED_MODE_ON;
+            led[1].next_state_millis = millis() + 20000;
             return;
         case '3':
-            led1.mode = LED_MODE_BLINK1;
-            led1.next_state_millis = millis() + 20000;
+            led[0].mode = LED_MODE_BLINK1;
+            led[0].next_state_millis = millis() + 20000;
             return;
         case '4':
-            led2.mode = LED_MODE_BLINK1;
-            led2.next_state_millis = millis() + 20000;
+            led[1].mode = LED_MODE_BLINK1;
+            led[1].next_state_millis = millis() + 20000;
             return;
         case '5':
-            led1.mode = LED_MODE_BLINK2;
-            led1.next_state_millis = millis() + 20000;
+            led[0].mode = LED_MODE_BLINK2;
+            led[0].next_state_millis = millis() + 20000;
             return;
         case '6':
-            led2.mode = LED_MODE_BLINK2;
-            led2.next_state_millis = millis() + 20000;
+            led[1].mode = LED_MODE_BLINK2;
+            led[1].next_state_millis = millis() + 20000;
             return;
         case '7':
-            led1.mode = LED_MODE_BLINK1;
-            led1.next_state_millis = millis() + 20000;
-            led2.mode = LED_MODE_BLINK2;
-            led2.next_state_millis = millis() + 20000;
+            led[0].mode = LED_MODE_BLINK1;
+            led[0].next_state_millis = millis() + 20000;
+            led[1].mode = LED_MODE_BLINK2;
+            led[1].next_state_millis = millis() + 20000;
             return;
         case 'r':
             output_flags |= OUTPUT_RAWALL;

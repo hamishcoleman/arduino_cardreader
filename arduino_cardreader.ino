@@ -39,15 +39,15 @@ void setup(void) {
     Serial.print("sketch=" __FILE__);
     packet_end();
 
-    led1.pin = LED1;
-    led2.pin = LED2;
+    led[0].pin = LED1;
+    led[1].pin = LED2;
 
-    pinMode(led1.pin, OUTPUT);
-    pinMode(led2.pin, OUTPUT);
+    pinMode(led[0].pin, OUTPUT);
+    pinMode(led[1].pin, OUTPUT);
 
     // Set all status lights on to show we are booting
-    digitalWrite(led1.pin, HIGH);
-    digitalWrite(led2.pin, HIGH);
+    digitalWrite(led[0].pin, HIGH);
+    digitalWrite(led[1].pin, HIGH);
 
   nfc.begin();
 
@@ -65,11 +65,11 @@ void setup(void) {
   nfc.SAMConfig();
 
     // Signal PN532 initialized by turning off led1
-    digitalWrite(led1.pin, LOW);
+    digitalWrite(led[0].pin, LOW);
 
     // Show the timer and mainloop is ticking by turning off led2 shortly
-    led2.mode = LED_MODE_ON;
-    led2.next_state_millis = millis() + 500;
+    led[1].mode = LED_MODE_ON;
+    led[1].next_state_millis = millis() + 500;
 
     ledtimer_init();
 
@@ -108,10 +108,10 @@ void loop(void) {
     }
 
     // we found at least one card, blink the status light for a bit
-    led1.mode = LED_MODE_BLINK1;
-    led1.next_state_millis = millis() + 500;
-    led2.mode = LED_MODE_ON;
-    led2.next_state_millis = millis() + 3000;
+    led[0].mode = LED_MODE_BLINK1;
+    led[0].next_state_millis = millis() + 500;
+    led[1].mode = LED_MODE_ON;
+    led[1].next_state_millis = millis() + 3000;
 
     if (output_flags & OUTPUT_RAWALL) {
         // only output message if debugging output is on
