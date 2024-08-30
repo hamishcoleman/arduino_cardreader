@@ -5,7 +5,10 @@
  * functions to interface with ISO14443A cards
  */
 
+#include <Arduino.h>
+#include "arduino_cardreader.h"
 #include "byteops.h"
+#include "packets.h"
 
 bool iso14443a_select_app(uint8_t tg, uint32_t app) {
     uint8_t cmd[4];

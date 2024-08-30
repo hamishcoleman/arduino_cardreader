@@ -7,10 +7,10 @@ CORE := arduino:avr@1.8.6
 FQBN ?= arduino:avr:pro
 PORT ?= /dev/ttyUSB0
 
-DEPS += byteops.h byteops.ino
-DEPS += card_iso14443.h card_iso14443.ino
-DEPS += ledtimer.h ledtimer.ino
-DEPS += packets.h packets.ino
+DEPS += byteops.h byteops.cpp
+DEPS += card_iso14443.h card_iso14443.cpp
+DEPS += ledtimer.h ledtimer.cpp
+DEPS += packets.h packets.cpp
 
 # Ensure we start with a known config
 ARDUINO_CONFIG_FILE ?= arduino-cli.yaml

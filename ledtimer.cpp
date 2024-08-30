@@ -6,6 +6,18 @@
  * It is intended to be generic enough to be reusable in other projects
  */
 
+#include <Arduino.h>
+#include "ledtimer.h"
+
+struct led_status led1 = {
+    .pin = LED_BUILTIN,
+    .mode = LED_MODE_OFF,
+};
+struct led_status led2 = {
+    .pin = LED_BUILTIN,
+    .mode = LED_MODE_OFF,
+};
+
 void ledtimer_init() {
     // Configure timer1 to manage the led status, with a 100ms tick
     cli();

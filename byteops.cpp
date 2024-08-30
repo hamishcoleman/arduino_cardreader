@@ -6,6 +6,9 @@
  * It is intended to be generic enough to be reusable in other projects
  */
 
+#include <stdint.h>
+#include <HardwareSerial.h>
+
 uint32_t buf_be2hl(uint8_t *buf) {
     uint32_t result;
 

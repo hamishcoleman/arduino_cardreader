@@ -5,6 +5,10 @@
  * Packetised input and output handling
  */
 
+#include <Arduino.h>
+#include "arduino_cardreader.h"
+#include "ledtimer.h"
+
 static void handle_serial_cmd(uint8_t *cmd, uint8_t len) {
     // Only trivial one char commands are implemented
     if (len != 1) {
@@ -68,8 +72,7 @@ static void handle_serial_cmd(uint8_t *cmd, uint8_t len) {
 uint8_t cmd[8];
 uint8_t cmdpos = 0xff;
 
-void handle_serial() {
-    uint8_t ch = Serial.read();
+void handle_serial(uint8_t ch) {
     if (ch == '\x02') {
         // Start of frame
         cmdpos = 0;

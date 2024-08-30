@@ -14,6 +14,7 @@
 #include <SPI.h>
 #include <Adafruit_PN532.h>
 
+#include "arduino_cardreader.h"
 #include "byteops.h"        // for hexdump()
 #include "card_iso14443.h"
 #include "ledtimer.h"
@@ -27,28 +28,7 @@
 // pin.
 Adafruit_PN532 nfc(PN532_SS);
 
-// This list of possible types for InAutoPoll results was taken from the table
-// in 7.3.13 of the Pn532 User Manual
-#define TYPE_MIFARE     0x10
-#define TYPE_FELICA_212 0x11
-#define TYPE_FELICA_424 0x12
-#define TYPE_ISO14443A  0x20
-
-#define OUTPUT_RAWALL   1   // Always generate raw= messages
-#define OUTPUT_RAWTAG   2   // Always generate rawtag= messages
 uint8_t output_flags = 0;
-
-#define LED1 7  // Intended to show status + activity (maybe green?)
-#define LED2 8  // Reserved for showing an error (maybe red?)
-
-struct led_status led1 = {
-    .pin = LED1,
-    .mode = LED_MODE_OFF,
-};
-struct led_status led2 = {
-    .pin = LED2,
-    .mode = LED_MODE_ON,
-};
 
 void setup(void) {
 #ifndef ESP8266
@@ -58,6 +38,9 @@ void setup(void) {
     packet_start();
     Serial.print("sketch=" __FILE__);
     packet_end();
+
+    led1.pin = LED1;
+    led2.pin = LED2;
 
     pinMode(led1.pin, OUTPUT);
     pinMode(led2.pin, OUTPUT);
@@ -84,10 +67,11 @@ void setup(void) {
     // Signal PN532 initialized by turning off led1
     digitalWrite(led1.pin, LOW);
 
-    ledtimer_init();
-
-    // Show the mainloop is ticking by turning off led2 shortly
+    // Show the timer and mainloop is ticking by turning off led2 shortly
+    led2.mode = LED_MODE_ON;
     led2.next_state_millis = millis() + 500;
+
+    ledtimer_init();
 
   Serial.println("Waiting for a Card ...");
 }
@@ -98,7 +82,7 @@ uint8_t last_uid[12];
 
 void loop(void) {
     while (Serial.available()) {
-        handle_serial();
+        handle_serial(Serial.read());
     }
 
     uint8_t polldata[64];   // Buffer to store the poll results
