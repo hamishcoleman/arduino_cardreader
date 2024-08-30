@@ -1,3 +1,10 @@
+/*
+ * Copyright 2024 Hamish Coleman
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * This is a timer driven, automatic LED state handler.
+ * It is intended to be generic enough to be reusable in other projects
+ */
 
 void ledtimer_init() {
     // Configure timer1 to manage the led status, with a 100ms tick
