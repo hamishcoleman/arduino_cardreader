@@ -17,6 +17,7 @@
 #include "arduino_cardreader.h"
 #include "byteops.h"        // for hexdump()
 #include "card_iso14443.h"
+#include "card_mifare.h"
 #include "ledtimer.h"
 #include "packets.h"
 
@@ -214,6 +215,10 @@ void loop(void) {
             hexdump(&len, 1);
             hexdump(data, len);
             packet_end();
+        }
+
+        if (type == TYPE_MIFARE) {
+            decode_mifare(nfc, nfcid, nfcidlength);
         }
 
         if (type == TYPE_ISO14443A && nfcidlength != 4) {

@@ -22,6 +22,16 @@ uint32_t buf_be2hl(uint8_t *buf) {
     return result;
 }
 
+uint32_t buf_be2h24(uint8_t *buf) {
+    uint32_t result;
+    result = *buf++;
+    result <<= 8;
+    result |= *buf++;
+    result <<= 8;
+    result |= *buf++;
+    return result;
+}
+
 uint32_t buf_le2hl(uint8_t *buf) {
     uint32_t result;
 

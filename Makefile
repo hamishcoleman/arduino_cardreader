@@ -9,6 +9,7 @@ PORT ?= /dev/ttyUSB0
 
 DEPS += byteops.h byteops.cpp
 DEPS += card_iso14443.h card_iso14443.cpp
+DEPS += card_mifare.h card_mifare.cpp
 DEPS += ledtimer.h ledtimer.cpp
 DEPS += packets.h packets.cpp
 

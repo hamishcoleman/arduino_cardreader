@@ -8,6 +8,7 @@
 
 /* Convert from a memory buffer to an integer */
 uint32_t buf_be2hl(uint8_t *buf);
+uint32_t buf_be2h24(uint8_t *buf);
 uint32_t buf_le2hl(uint8_t *buf);
 
 /* Dump a memory buffer to serial */

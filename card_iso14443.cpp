@@ -126,12 +126,8 @@ void do_iso14443a(uint8_t tg) {
 
     uint8_t pos = 1;
     while(pos < reslen) {
-        uint32_t app;
-        app = res[pos++];
-        app <<= 8;
-        app |= res[pos++];
-        app <<= 8;
-        app |= res[pos++];
+        uint32_t app = buf_be2h24(&res[pos]);
+        pos += 3;
 
         // TODO:
         // - we return after the first matched app ID, which might not be
