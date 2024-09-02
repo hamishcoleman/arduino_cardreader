@@ -233,7 +233,7 @@ void loop(void) {
             // all working samples:
             // ATQA=0344, len=7, apps returns 00xxxxxx[yyyyyy]
 
-            do_iso14443a(tg);
+            decode_iso14443a(nfc, tg);
         }
 
     }

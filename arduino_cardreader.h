@@ -21,5 +21,3 @@
 #define OUTPUT_RAWTAG   2   // Always generate rawtag= messages
 #define OUTPUT_EXTRA    4   // Poll the card for extra data
 extern uint8_t output_flags;
-
-extern Adafruit_PN532 nfc;

@@ -5,12 +5,13 @@
  * functions to interface with ISO14443A cards
  */
 
+#include <Adafruit_PN532.h>
 #include <Arduino.h>
 #include "arduino_cardreader.h"
 #include "byteops.h"
 #include "packets.h"
 
-bool iso14443a_select_app(uint8_t tg, uint32_t app) {
+bool iso14443a_select_app(Adafruit_PN532 nfc, uint8_t tg, uint32_t app) {
     uint8_t cmd[4];
     cmd[0] = 0x5a;   // Select Application
     cmd[1] = (app & 0xff0000) >> 16;
@@ -25,7 +26,7 @@ bool iso14443a_select_app(uint8_t tg, uint32_t app) {
     return true;
 }
 
-uint8_t iso14443a_read_file(uint8_t tg, uint8_t file, uint8_t offset, uint8_t size, uint8_t *buf, uint8_t buflen) {
+uint8_t iso14443a_read_file(Adafruit_PN532 nfc, uint8_t tg, uint8_t file, uint8_t offset, uint8_t size, uint8_t *buf, uint8_t buflen) {
     uint8_t cmd[8];
     cmd[0] = 0xbd;  // Read Data
     cmd[1] = file;  // File no
@@ -43,30 +44,30 @@ uint8_t iso14443a_read_file(uint8_t tg, uint8_t file, uint8_t offset, uint8_t si
     return buflen;
 }
 
-static void do_iso14443a_clipper(uint8_t tg) {
+static void do_iso14443a_clipper(Adafruit_PN532 nfc, uint8_t tg) {
     Serial.print("clipper/");
 
-    if (!iso14443a_select_app(tg, 0x9011f2)) {
+    if (!iso14443a_select_app(nfc, tg, 0x9011f2)) {
         return;
     }
 
     uint8_t buf[8];
-    if (iso14443a_read_file(tg,8,1,4,buf,sizeof(buf)) != 5) {
+    if (iso14443a_read_file(nfc, tg,8,1,4,buf,sizeof(buf)) != 5) {
         return;
     }
 
     Serial.print(buf_be2hl(&buf[1]));
 }
 
-static void do_iso14443a_opal(uint8_t tg) {
+static void do_iso14443a_opal(Adafruit_PN532 nfc, uint8_t tg) {
     Serial.print("opal/");
 
-    if (!iso14443a_select_app(tg, 0x314553)) {
+    if (!iso14443a_select_app(nfc, tg, 0x314553)) {
         return;
     }
 
     uint8_t buf[6];
-    if (iso14443a_read_file(tg,7,0,5,buf,sizeof(buf)) != 6) {
+    if (iso14443a_read_file(nfc, tg,7,0,5,buf,sizeof(buf)) != 6) {
         return;
     }
 
@@ -77,15 +78,15 @@ static void do_iso14443a_opal(uint8_t tg) {
     Serial.print(buf[5] & 0xf);
 }
 
-static void do_iso14443a_myki(uint8_t tg) {
+static void do_iso14443a_myki(Adafruit_PN532 nfc, uint8_t tg) {
     Serial.print("myki/");
 
-    if (!iso14443a_select_app(tg, 0x11F2)) {
+    if (!iso14443a_select_app(nfc, tg, 0x11F2)) {
         return;
     }
 
     uint8_t buf[10];
-    if (iso14443a_read_file(tg,0xf,0,8,buf,sizeof(buf)) != 9) {
+    if (iso14443a_read_file(nfc, tg,0xf,0,8,buf,sizeof(buf)) != 9) {
         return;
     }
 
@@ -97,7 +98,7 @@ static void do_iso14443a_myki(uint8_t tg) {
     Serial.print('x');
 }
 
-uint8_t do_iso14443a_apps(uint8_t tg, uint8_t *res, uint8_t reslen) {
+uint8_t do_iso14443a_apps(Adafruit_PN532 nfc, uint8_t tg, uint8_t *res, uint8_t reslen) {
     uint8_t cmd[1];
     cmd[0] = 0x6a;   // Get Application IDs
 
@@ -113,10 +114,10 @@ uint8_t do_iso14443a_apps(uint8_t tg, uint8_t *res, uint8_t reslen) {
     return reslen;
 }
 
-void do_iso14443a(uint8_t tg) {
+void decode_iso14443a(Adafruit_PN532 nfc, uint8_t tg) {
     uint8_t res[10];
 
-    uint8_t reslen = do_iso14443a_apps(tg, res, sizeof(res));
+    uint8_t reslen = do_iso14443a_apps(nfc, tg, res, sizeof(res));
     if (output_flags & OUTPUT_RAWALL) {
         packet_start();
         Serial.print("apps=");
@@ -137,13 +138,13 @@ void do_iso14443a(uint8_t tg) {
         Serial.print("serial=");
         switch(app) {
             case 0x11f2:
-                do_iso14443a_myki(tg);
+                do_iso14443a_myki(nfc, tg);
                 goto end1;
             case 0x314553:
-                do_iso14443a_opal(tg);
+                do_iso14443a_opal(nfc, tg);
                 goto end1;
             case 0x9011f2:
-                do_iso14443a_clipper(tg);
+                do_iso14443a_clipper(nfc, tg);
                 goto end1;
         }
     }
