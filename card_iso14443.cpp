@@ -133,20 +133,26 @@ void do_iso14443a(uint8_t tg) {
         app <<= 8;
         app |= res[pos++];
 
+        // TODO:
+        // - we return after the first matched app ID, which might not be
+        //   the correct answer.  (So far, only myki has more than one app)
+
         packet_start();
         Serial.print("serial=");
         switch(app) {
             case 0x11f2:
                 do_iso14443a_myki(tg);
-                break;
+                goto end1;
             case 0x314553:
                 do_iso14443a_opal(tg);
-                break;
+                goto end1;
             case 0x9011f2:
                 do_iso14443a_clipper(tg);
-                break;
+                goto end1;
         }
-        packet_end();
     }
+
+end1:
+    packet_end();
 }
 
