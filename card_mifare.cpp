@@ -32,6 +32,11 @@ static void decode_hsl(Adafruit_PN532 nfc, uint8_t *uid, uint8_t *page4) {
     Serial.print((page4[6]>>4), HEX);
 }
 
+static void decode_troika(Adafruit_PN532 nfc, uint8_t *page4) {
+    uint32_t s = (buf_be2hl(&page4[0]) << 20) | (buf_be2hl(&page4[4]) >> 12);
+    Serial.print(s);
+}
+
 static void decode_mifare7(Adafruit_PN532 nfc, uint8_t *uid) {
     uint8_t page4[16];
 
@@ -51,6 +56,15 @@ static void decode_mifare7(Adafruit_PN532 nfc, uint8_t *uid) {
         Serial.print("serial=hsl/");
         decode_hsl(nfc, uid, page4);
         packet_end();
+        return;
+    }
+
+    if ((page4[0]==0x45) && (page4[1]&0xc0 == 0xc0)) {
+        packet_start();
+        Serial.print("serial=troika/");
+        decode_troika(nfc, page4);
+        packet_end();
+        return;
     }
 
 }
