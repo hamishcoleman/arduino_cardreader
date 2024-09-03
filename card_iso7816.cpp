@@ -12,21 +12,27 @@
 #include "card_iso7816.h"
 
 #define APDU_selectByID     0
-#define APDU_readPSE        1
-#define APDU_getBalance     2
-#define APDU_readBinary     3
+#define APDU_selectFile     1
+#define APDU_readRecord     2
+#define APDU_readPSE        3
+#define APDU_getBalance     4
+#define APDU_readBinary     5
 
 static uint8_t * apdu[] = {
-    [APDU_selectByID]   = "\x00\xa4\x00\x00\x02\x3f\x00\x00",   // id = 3f 00
+    [APDU_selectByID]   = "\x00\xa4\x00\x00\x00",       // id = Master File?
+    [APDU_selectFile]   = "\x00\xa4\x04\x00\x0e" "1PAY.SYS.DDF01",
+    [APDU_readRecord]   = "\x00\xb2\x01\x14\x00",
     [APDU_readPSE]      = "\x00\xb2\x01\x02\x00\x00",           // idx = 02
     [APDU_getBalance]   = "\x80\x5c\x00\x02\x04\x00",
-    [APDU_readBinary]   = "\x00\xb2\x95\x00\x00",               // sfi = 95
+    [APDU_readBinary]   = "\x00\xb0\x95\x00\x00",               // sfi = 95
     "\xff\x00\x48\x00\x00",
     "\xff\x00\x00\x00\x02\xd4\x02",
     "\x00\xc0\x00\x00\x20",     // get response, le=0x20
 };
 static const uint8_t apdu_size[] = {
-    [APDU_selectByID] = 8,
+    [APDU_selectByID] = 5,
+    [APDU_selectFile] = 19,
+    [APDU_readRecord] = 5,
     [APDU_readPSE] = 6,
     [APDU_getBalance] = 6,
     [APDU_readBinary] = 5,
@@ -36,6 +42,8 @@ static const uint8_t apdu_size[] = {
 };
 static const char *apdu_name[] = {
     [APDU_selectByID] = "selectByID",
+    [APDU_selectFile] = "selectFile",
+    [APDU_readRecord] = "readRecord",
     [APDU_readPSE] = "readPSE",
     [APDU_getBalance] = "getBalance",
     [APDU_readBinary] = "readBinary",
@@ -49,6 +57,10 @@ static serial_reserror(uint8_t * err) {
     switch(err[0]) {
         case 0x67:
             Serial.print(F("Length Incorrect"));
+            return;
+        case 0x69:
+            Serial.print(F("Not Allowed"));
+            // err[1] == 81, "imcompatible with file structure"
             return;
         case 0x6a:
             Serial.print(F("Wrong Param: "));
@@ -112,12 +124,12 @@ static void readBinary(Adafruit_PN532 nfc, uint8_t sfi) {
 }
 
 void decode_iso7816(Adafruit_PN532 nfc) {
-    // apdu_simple(nfc, 4);
-    // apdu_simple(nfc, 5);
 
     selectByID(nfc);
+    apdu_simple(nfc, APDU_selectFile);
+    readBinary(nfc,0x80 | 21);
+
     readPSE(nfc,2);
-    readBinary(nfc,21); // SFI_EXTRA
     getBalance(nfc);
 }
 
