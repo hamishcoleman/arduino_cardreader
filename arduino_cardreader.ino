@@ -138,55 +138,36 @@ void loop(void) {
         uint8_t nfcidlength = 0;
         uint8_t *nfcid;
 
-        switch (type) {
-            case 0:
-            case 1:
-            case 2:
-                // generic types are not possible
-                // At the least, type 1 has been seen when an interrupted or
-                // partial read is done (This was able to be replicated by
-                // removing the card from the reader quickly)
-                // - for two cards with 7 byte UIDs, when this occured the
-                //   raw buffer was 0103442007
-                // - for two cards with 4 byte UIDs, when this occurec the
-                //   raw buffer was 0100
+        if (type == TYPE_MIFARE || type == TYPE_ISO14443A) {
+            // uint16_t sens_res = data[1,2];   ATQA
+            // uint8_t sel_res = data[3];       SAK
+            nfcidlength = data[4];
+            nfcid = &data[5];
+            nfcid_decoded = true;
 
-                break;
+            if (len > (4 + nfcidlength)) {
+                ats = &data[5 + nfcidlength];
+            }
+        }
 
-            case TYPE_MIFARE:
-            case TYPE_ISO14443A:
-                // uint16_t sens_res = data[1,2];   ATQA
-                // uint8_t sel_res = data[3];       SAK
-                nfcidlength = data[4];
-                nfcid = &data[5];
-                nfcid_decoded = true;
-
-                if (len > (4 + nfcidlength)) {
-                    ats = &data[5 + nfcidlength];
-                }
-
-                break;
-
-            case TYPE_FELICA_212:
-            case TYPE_FELICA_424:
-                // uint8_t tg = data[0]
-                // uint8_t pol_res = data[1]
-                nfcidlength = 8;
-                nfcid = &data[2];
-                nfcid_decoded = true;
-                break;
+        if (type == TYPE_FELICA_212 || type == TYPE_FELICA_424) {
+            // uint8_t pol_res = data[1]
+            // uint8_t response = data[2] == 0x01
+            // part manufacturing data = data[11..19]
+            nfcidlength = 8;
+            nfcid = &data[3];
+            nfcid_decoded = true;
+        }
 
 /*
-            case 0x23: // Passive 106 kbps ISO/IEC14443-4B,
-            case 0x40: // DEP passive 106 kbps,
-            case 0x41: // DEP passive 212 kbps,
-            case 0x42: // DEP passive 424 kbps,
-            case 0x80: // DEP active 106 kbps,
-            case 0x81: // DEP active 212 kbps,
-            case 0x82: // DEP active 424 kbps.
-                break;
+        case 0x23: // Passive 106 kbps ISO/IEC14443-4B,
+        case 0x40: // DEP passive 106 kbps,
+        case 0x41: // DEP passive 212 kbps,
+        case 0x42: // DEP passive 424 kbps,
+        case 0x80: // DEP active 106 kbps,
+        case 0x81: // DEP active 212 kbps,
+        case 0x82: // DEP active 424 kbps.
 */
-        }
 
         if (nfcid_decoded) {
             if ((last_uidlen==nfcidlength) && (memcmp(last_uid,nfcid,nfcidlength)==0)) {
