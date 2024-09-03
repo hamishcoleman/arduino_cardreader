@@ -72,6 +72,10 @@ hack_install_lib:
 upload: $(SKETCH)
 	bin/arduino-cli compile --fqbn $(FQBN) --port $(PORT) --upload
 
+.PHONY: upload_monitor
+upload_monitor: upload
+	picocom --quiet -b 115200 $(PORT)
+
 # TODO: deps on the lib?
 $(SKETCH).elf: $(SKETCH) $(DEPS)
 	bin/arduino-cli compile --fqbn $(FQBN) --output-dir .
