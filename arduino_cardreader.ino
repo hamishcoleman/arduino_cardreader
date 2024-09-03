@@ -17,6 +17,7 @@
 #include "arduino_cardreader.h"
 #include "byteops.h"        // for hexdump()
 #include "card_iso14443.h"
+#include "card_iso7816.h"
 #include "card_mifare.h"
 #include "ledtimer.h"
 #include "packets.h"
@@ -127,6 +128,7 @@ void loop(void) {
         uint8_t type = polldata[pos++];
         uint8_t len = polldata[pos++];
         uint8_t *data = &polldata[pos];
+        uint8_t *ats = NULL;
         pos += len;
         found--;
 
@@ -158,6 +160,11 @@ void loop(void) {
                 nfcidlength = data[4];
                 nfcid = &data[5];
                 nfcid_decoded = true;
+
+                if (len > (4 + nfcidlength)) {
+                    ats = &data[5 + nfcidlength];
+                }
+
                 break;
 
             case TYPE_FELICA_212:
@@ -221,19 +228,35 @@ void loop(void) {
             decode_mifare(nfc, nfcid, nfcidlength);
         }
 
-        if (type == TYPE_ISO14443A && nfcidlength != 4) {
-            // I have found nothing clearly documenting this, but some cards
-            // using the ISO14443A discovery protocol dont actually respond
-            // to any of the standard card function requests
-            //
-            // error datapoints:
-            // ATQA=0008, len=4, apps returns 6700
-            // ATQA=0044, len=7, apps returns 6700
-            //
-            // all working samples:
-            // ATQA=0344, len=7, apps returns 00xxxxxx[yyyyyy]
+        if (type == TYPE_ISO14443A) {
+            if (ats) {
+                // A combination of the ATS length and first two bytes
+                uint32_t magic = buf_be2h24(ats);
 
-            decode_iso14443a(nfc, tg);
+                if (magic == 0x107880) {
+                    // I have three cards that respond with "6700" for DESFire
+                    // commands, which seems matches a 7816 "length error" code
+                    // and they all have this magic
+                    // Once again, I've not seen anything that claims to be a
+                    // document for how to identify them (if only the ISO docs
+                    // were actually free to download)
+                    decode_iso7816(nfc);
+                }
+            }
+            if (nfcidlength != 4) {
+                // I have found nothing clearly documenting this, but some cards
+                // using the ISO14443A discovery protocol dont actually respond
+                // to any of the standard card function requests
+                //
+                // error datapoints:
+                // ATQA=0008, len=4, apps returns 6700
+                // ATQA=0044, len=7, apps returns 6700
+                //
+                // all working samples:
+                // ATQA=0344, len=7, apps returns 00xxxxxx[yyyyyy]
+
+                decode_iso14443a(nfc, tg);
+            }
         }
 
     }
