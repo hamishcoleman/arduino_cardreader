@@ -132,6 +132,7 @@ void loop(void) {
         pos += len;
         found--;
 
+        // TODO: refactor - tg is part of the PN532 header, not the targetdata
         uint8_t tg = data[0];
 
         bool nfcid_decoded = false;
@@ -151,8 +152,8 @@ void loop(void) {
         }
 
         if (type == TYPE_FELICA_212 || type == TYPE_FELICA_424) {
-            // uint8_t pol_res = data[1]
-            // uint8_t response = data[2] == 0x01
+            // uint8_t pol_res = data[1] == len(targetdata)
+            // uint8_t response = data[2] == 0x01 (polling RC)
             // part manufacturing data = data[11..19]
             nfcidlength = 8;
             nfcid = &data[3];
