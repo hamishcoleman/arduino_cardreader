@@ -56,9 +56,9 @@ held up at the same time - showing simultaneous detection and reading.
 All communications (both input and output) are intended to be both useful for
 humans to view and debug and simple for a machine to reliably parse the data.
 
-All messages (both input and output) are framed with a start and a stop
-character.  The message starts with a STX (0x02) char and ends with a EOT
-(0x04) char.
+All messages intended for machine parsing (both input and output) are framed
+with a start and a stop character.  The message starts with a STX (0x02) char
+and ends with a EOT (0x04) char.
 
 Any text received before an STX char or after an EOT char should not be
 interpreted.  This allows debugging output or informational text to be
@@ -67,23 +67,45 @@ easily intermixed with operational messages.
 Currently, the message format is printable text only and thus there is no
 need to escape any control characters.
 
-Each message is comprised of a "tag" and a "value", separated by an "="
-character.
+Currently, every message sent from the card reader is comprised of a "key" and
+a "value", separated by an "=" character.
 
 This format is expected to evolve after more testing.
 
+### Output Messages
+
+| key | brief description |
+| --- | ----------------- |
+| cardid | FUTURE - in the cardreader's opinion, the best identifying string |
+| rawpoll | An optional message for debugging the raw poll data |
+| rawtag | An optional message for debugging tag data |
+| serial | If possible, the serial number printed on the card is output |
+| uid | The internal card unique ID |
+
+### Message "serial="
+
+An attempt is made to decode the serial number printed on the outside of the
+card and presented via this message.
+
+Most cards either do not have this information available without the private
+keys, or do not store this information on the card itself.
+
 ### Message "uid="
 
-This status output is the main use for this project.  This shows the unique hex
-ID determined from the cards presented to the reader.
+This status output contains the "Anticollision Unique Identifier" of any card
+presented to the reader.  This will generally not be related to any number
+printed on the card itself and may even not be unique at all.
 
-The special tag "NONE" indicates that there is no longer any card in front
+It is the simplest and lowest level for identifying between different cards.
+
+The special value "NONE" indicates that there is no longer any card in front
 of the reader.
 
-If a card is held to the reader for an extended time, this message will not
-repeat - once the card is removed from the reader, the NONE tag will be output.
+In most cases, the uid is only generated once for each time the card is held
+up to the reader and once removed a NONE tag will be output to show that the
+card has been removed.
 
-The card tag is prefixed with the name of the card type to keep the (sometimes
+The card uid is prefixed with the name of the card type to keep the (sometimes
 quite small) ID name space separate for each type of RFID hardware.
 
 ### Message "rawtag="
@@ -107,7 +129,7 @@ Note that erroneous or partial card reads have been known to show up as type
 ### Message "rawpoll="
 
 When enabled, this status output is used for detailed debugging, sending a
-large chunk of the InAutoPoll response PDU is output.
+large chunk of the InAutoPoll response PDU.
 
 This message defaults to disabled and needs to be enabled with the "r" command.
 
