@@ -38,12 +38,12 @@ sketch=/home/runner/work/arduino_cardreader/arduino_cardreader/arduino_cardreade
 Found chip PN532
 Firmware ver. 1.4
 Waiting for a Card ...
-tag=20/0435178A597532
-tag=NONE
+uid=iso14443a/0435178A597532
+uid=NONE
 
-tag=20/AF8E8E13
-tag=10/E2E2F98B
-tag=NONE
+uid=iso14443a/AF8E8E13
+uid=mifare/E2E2F98B
+uid=NONE
 
 ```
 
@@ -72,7 +72,7 @@ character.
 
 This format is expected to evolve after more testing.
 
-### Message "tag="
+### Message "uid="
 
 This status output is the main use for this project.  This shows the unique hex
 ID determined from the cards presented to the reader.
@@ -88,7 +88,7 @@ quite small) ID name space separate for each type of RFID hardware.
 
 ### Message "rawtag="
 
-If the card type (see prefix mentioned for tag=) cannot be determined, the
+If the card type (see prefix mentioned for uid=) cannot be determined, the
 rawtag= message is output.  This message can also be unconditionally enabled
 for output.  This status output allows for possible further processing of the
 card data, sending a hexdump of the raw data for this tag.
@@ -104,7 +104,7 @@ for "len" and then len bytes of the card data.
 Note that erroneous or partial card reads have been known to show up as type
 0x01
 
-### Message "raw="
+### Message "rawpoll="
 
 When enabled, this status output is used for detailed debugging, sending a
 large chunk of the InAutoPoll response PDU is output.
@@ -128,8 +128,8 @@ and ending with a `Ctrl-D`
 | 5 | Blinks LED1 out of phase |
 | 6 | Blinks LED2 out of phase |
 | 7 | Blinks both LEDs, one in each phase |
-| r | Enable raw= messages |
-| R | Disable raw= messages |
+| r | Enable rawpoll= messages |
+| R | Disable rawpoll= messages |
 | t | Enable rawtag= messages |
 | T | Disable rawtag= messages |
 
@@ -162,7 +162,7 @@ Boot up status:
 | off | off | bootup finished (500ms after bootup complete) |
 
 Client app
-- Waits for a tag= message
+- Waits for a uid= message
 - looks card up in database
 - If card good, sends LEDoff and LED1on commands
 - If card bad, sends LEDbothBlink commands

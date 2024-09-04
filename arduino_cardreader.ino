@@ -93,7 +93,7 @@ void loop(void) {
         if (last_uidlen) {
             // Show that the card reader is clear of detected cards
             packet_start();
-            Serial.print("tag=NONE");
+            Serial.print("uid=NONE");
             packet_end();
             Serial.println();
             last_uidlen = 0;
@@ -104,7 +104,7 @@ void loop(void) {
 
     // We overload the uidlen here - for non decoded cards, the len will end
     // up being 1 or 2, which should still not match the deduplication logic
-    // while at the same time working with the tag=NONE logic.
+    // while at the same time working with the uid=NONE logic.
     if (!last_uidlen) {
         last_uidlen = found;
     }
@@ -118,7 +118,7 @@ void loop(void) {
     if (output_flags & OUTPUT_RAWALL) {
         // only output message if debugging output is on
         packet_start();
-        Serial.print("raw=");
+        Serial.print("rawpoll=");
         hexdump(polldata, sizeof(polldata));
         packet_end();
     }
@@ -177,7 +177,7 @@ void loop(void) {
             }
 
             packet_start();
-            Serial.print("tag=");
+            Serial.print("uid=");
             switch(type) {
                 case TYPE_MIFARE:
                     Serial.print("mifare/");
