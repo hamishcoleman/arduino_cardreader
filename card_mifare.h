@@ -11,4 +11,6 @@
 #pragma once
 
 #include <Adafruit_PN532.h>
-void decode_mifare(Adafruit_PN532 nfc, uint8_t *uid, uint8_t uidlen);
+#include "card.h"
+
+void decode_mifare(Adafruit_PN532 nfc, Card& card);

@@ -10,6 +10,7 @@
 
 #include "arduino_cardreader.h"
 #include "byteops.h"
+#include "card.h"
 #include "hexdump.h"
 #include "packets.h"
 
@@ -25,10 +26,10 @@ uint8_t mifare_read(Adafruit_PN532 nfc, uint8_t page, uint8_t * buf, uint8_t buf
     return buflen;
 }
 
-static void decode_hsl(Adafruit_PN532 nfc, uint8_t *uid, uint8_t *page4) {
+static void decode_hsl(Adafruit_PN532 nfc, Card& card, uint8_t *page4) {
     hexdump(Serial, &page4[1], 5);
-    uint32_t u1 = buf_be2h24(&uid[1]);
-    uint32_t u2 = buf_be2h24(&uid[4]);
+    uint32_t u1 = buf_be2h24(&card.uid[1]);
+    uint32_t u2 = buf_be2h24(&card.uid[4]);
     serial_intzeropad((u1^u2)&0x7fffff, 7);
     Serial.print((page4[6]>>4), HEX);
 }
@@ -38,7 +39,8 @@ static void decode_troika(Adafruit_PN532 nfc, uint8_t *page4) {
     Serial.print(s);
 }
 
-static void decode_mifare7(Adafruit_PN532 nfc, uint8_t *uid) {
+static void decode_mifare7(Adafruit_PN532 nfc, Card& card) {
+    // TODO: update Card class to cache read pages
     uint8_t page4[16];
 
     if (mifare_read(nfc, 4, page4, sizeof(page4))!=sizeof(page4)) {
@@ -55,7 +57,7 @@ static void decode_mifare7(Adafruit_PN532 nfc, uint8_t *uid) {
     if (buf_be2h24(&page4[1]) == 0x924621) {
         packet_start();
         Serial.print("serial=hsl/");
-        decode_hsl(nfc, uid, page4);
+        decode_hsl(nfc, card, page4);
         packet_end();
         return;
     }
@@ -70,9 +72,9 @@ static void decode_mifare7(Adafruit_PN532 nfc, uint8_t *uid) {
 
 }
 
-void decode_mifare(Adafruit_PN532 nfc, uint8_t *uid, uint8_t uidlen) {
-    if (uidlen == 7) {
-        decode_mifare7(nfc, uid);
+void decode_mifare(Adafruit_PN532 nfc, Card& card) {
+    if (card.uid_len == 7) {
+        decode_mifare7(nfc, card);
         return;
     }
 }

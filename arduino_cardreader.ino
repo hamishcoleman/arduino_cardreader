@@ -207,7 +207,7 @@ void loop(void) {
         }
 
         if (type == TYPE_MIFARE) {
-            decode_mifare(nfc, card.uid, card.uid_len);
+            decode_mifare(nfc, card);
         }
 
         if (type == TYPE_ISO14443A) {
