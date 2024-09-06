@@ -91,13 +91,13 @@ void loop(void) {
     uint8_t found = nfc.inAutoPoll(polldata, sizeof(polldata));
 
     if (!found) {
-        if (last_card.uid_type) {
+        if (last_card.uid_type != UID_TYPE_NONE) {
             // Show that the card reader is clear of detected cards
             packet_start();
             Serial.print("uid=NONE");
             packet_end();
             Serial.println();
-            last_card.uid_type = 0;
+            last_card.uid_type = UID_TYPE_NONE;
         }
         return;
     }
@@ -135,32 +135,44 @@ void loop(void) {
         // TODO: refactor - tg is part of the PN532 header, not the targetdata
         uint8_t tg = data[0];
 
-        bool nfcid_decoded = false;
-        uint8_t nfcidlength = 0;
-        uint8_t *nfcid;
+        Card card;
 
-        if (type == TYPE_MIFARE || type == TYPE_ISO14443A) {
-            // uint16_t sens_res = data[1,2];   ATQA
-            // uint8_t sel_res = data[3];       SAK
-            nfcidlength = data[4];
-            nfcid = &data[5];
-            nfcid_decoded = true;
+        switch(type) {
+            case TYPE_MIFARE:
+            case TYPE_ISO14443A:
+                // uint16_t sens_res = data[1,2];   ATQA
+                // uint8_t sel_res = data[3];       SAK
+                card.set_uid(&data[5], data[4]);
 
-            if (len > (4 + nfcidlength)) {
-                ats = &data[5 + nfcidlength];
-            }
-        }
+                if (type == TYPE_MIFARE) {
+                    card.set_uid_type(UID_TYPE_MIFARE);
+                } else {
+                    card.set_uid_type(UID_TYPE_ISO14443A);
+                }
 
-        if (type == TYPE_FELICA_212 || type == TYPE_FELICA_424) {
-            // uint8_t pol_res = data[1] == len(targetdata)
-            // uint8_t response = data[2] == 0x01 (polling RC)
-            // part manufacturing data = data[11..19]
-            nfcidlength = 8;
-            nfcid = &data[3];
-            nfcid_decoded = true;
+                if (len > (4 + card.uid_len)) {
+                    ats = &data[5 + card.uid_len];
+                }
+                break;
+            case TYPE_FELICA_212:
+            case TYPE_FELICA_424:
+                // uint8_t pol_res = data[1] == len(targetdata)
+                // uint8_t response = data[2] == 0x01 (polling RC)
+                // part manufacturing data = data[11..19]
+                card.set_uid(&data[3], 8);
+                card.set_uid_type(UID_TYPE_FELICA);
+                break;
+            default:
+                // TODO: highlight this better?
+                // Any Unknown card is an opportunity to extend this list
+                card.set_uid_type(UID_TYPE_UNKNOWN);
+                card.uid_len = 0;
+                break;
         }
 
 /*
+        Other possible card types:
+
         case 0x23: // Passive 106 kbps ISO/IEC14443-4B,
         case 0x40: // DEP passive 106 kbps,
         case 0x41: // DEP passive 212 kbps,
@@ -170,36 +182,22 @@ void loop(void) {
         case 0x82: // DEP active 424 kbps.
 */
 
-        if (nfcid_decoded) {
-            Card card;
-            card.set_uid(nfcid, nfcidlength);
-            switch(type) {
-                case TYPE_MIFARE:
-                    card.set_uid_type(UID_TYPE_MIFARE);
-                    break;
-                case TYPE_ISO14443A:
-                    card.set_uid_type(UID_TYPE_ISO14443A);
-                    break;
-                case TYPE_FELICA_212:
-                case TYPE_FELICA_424:
-                    card.set_uid_type(UID_TYPE_FELICA);
-                    break;
-            }
+        if (card == last_card) {
+            // Skip repeatly processing the same card
+            return;
+        }
+        last_card = card;
 
-            if (card == last_card) {
-                // Skip repeatly processing the same card
-                return;
-            }
+        if (card.uid_type > UID_TYPE_UNKNOWN) {
 
             packet_start();
             Serial.print("uid=");
             card.print_uid(Serial);
             packet_end();
-            last_card = card;
         }
 
         // Always do a raw dump if we didnt understand the data
-        if ((!nfcid_decoded) || (output_flags & OUTPUT_RAWTAG)) {
+        if ((card.uid_type <= UID_TYPE_UNKNOWN) || (output_flags & OUTPUT_RAWTAG)) {
             packet_start();
             Serial.print("rawtag=");
             hexdump(Serial, &type, 1);
@@ -209,7 +207,7 @@ void loop(void) {
         }
 
         if (type == TYPE_MIFARE) {
-            decode_mifare(nfc, nfcid, nfcidlength);
+            decode_mifare(nfc, card.uid, card.uid_len);
         }
 
         if (type == TYPE_ISO14443A) {
@@ -227,7 +225,7 @@ void loop(void) {
                     decode_iso7816(nfc);
                 }
             }
-            if (nfcidlength != 4) {
+            if (card.uid_len != 4) {
                 // I have found nothing clearly documenting this, but some cards
                 // using the ISO14443A discovery protocol dont actually respond
                 // to any of the standard card function requests

@@ -5,10 +5,11 @@
  * An abstract representation of a generic card
  */
 
-#define UID_TYPE_NONE       0
-#define UID_TYPE_MIFARE     1
-#define UID_TYPE_ISO14443A  2
-#define UID_TYPE_FELICA     3
+#define UID_TYPE_NONE       0   // No card is represented
+#define UID_TYPE_UNKNOWN    1   // A Card with a type we dont understand
+#define UID_TYPE_MIFARE     2
+#define UID_TYPE_ISO14443A  3
+#define UID_TYPE_FELICA     4
 
 #include <Print.h>
 
