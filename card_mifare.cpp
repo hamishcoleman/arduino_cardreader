@@ -10,6 +10,7 @@
 
 #include "arduino_cardreader.h"
 #include "byteops.h"
+#include "hexdump.h"
 #include "packets.h"
 
 uint8_t mifare_read(Adafruit_PN532 nfc, uint8_t page, uint8_t * buf, uint8_t buflen) {
@@ -25,7 +26,7 @@ uint8_t mifare_read(Adafruit_PN532 nfc, uint8_t page, uint8_t * buf, uint8_t buf
 }
 
 static void decode_hsl(Adafruit_PN532 nfc, uint8_t *uid, uint8_t *page4) {
-    hexdump(&page4[1], 5);
+    hexdump(Serial, &page4[1], 5);
     uint32_t u1 = buf_be2h24(&uid[1]);
     uint32_t u2 = buf_be2h24(&uid[4]);
     serial_intzeropad((u1^u2)&0x7fffff, 7);
@@ -47,7 +48,7 @@ static void decode_mifare7(Adafruit_PN532 nfc, uint8_t *uid) {
     if (output_flags & OUTPUT_RAWALL) {
         packet_start();
         Serial.print("page[4..7]=");
-        hexdump(page4, sizeof(page4));
+        hexdump(Serial, page4, sizeof(page4));
         packet_end();
     }
 

@@ -45,23 +45,6 @@ uint32_t buf_le2hl(uint8_t *buf) {
     return result;
 }
 
-// If only Serial.print(xyzzy, HEX) did leading zeros
-// (The lack of leading zeros has been raised before and they do not appear
-// to be interested in addressing it)
-void hexdump(uint8_t *buf, uint8_t size) {
-    char digits[] = "0123456789ABCDEF";
-    while(size) {
-        char ch = *buf;
-        char hi = (ch >> 4) & 0x0f;
-        char lo = ch & 0x0f;
-        Serial.print(digits[hi]);
-        Serial.print(digits[lo]);
-
-        buf++;
-        size--;
-    }
-}
-
 void serial_intzeropad(uint32_t i, uint8_t zeropad) {
     uint8_t digits = 0;
     uint32_t acc = i;

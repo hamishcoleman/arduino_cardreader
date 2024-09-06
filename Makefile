@@ -11,6 +11,7 @@ DEPS += byteops.h byteops.cpp
 DEPS += card_iso14443.h card_iso14443.cpp
 DEPS += card_iso7816.h card_iso7816.cpp
 DEPS += card_mifare.h card_mifare.cpp
+DEPS += hexdump.h hexdump.cpp
 DEPS += ledtimer.h ledtimer.cpp
 DEPS += packets.h packets.cpp
 

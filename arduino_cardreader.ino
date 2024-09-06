@@ -19,6 +19,7 @@
 #include "card_iso14443.h"
 #include "card_iso7816.h"
 #include "card_mifare.h"
+#include "hexdump.h"
 #include "ledtimer.h"
 #include "packets.h"
 
@@ -119,7 +120,7 @@ void loop(void) {
         // only output message if debugging output is on
         packet_start();
         Serial.print("rawpoll=");
-        hexdump(polldata, sizeof(polldata));
+        hexdump(Serial, polldata, sizeof(polldata));
         packet_end();
     }
 
@@ -190,7 +191,7 @@ void loop(void) {
                     Serial.print("felica/");
                     break;
             }
-            hexdump(nfcid, nfcidlength);
+            hexdump(Serial, nfcid, nfcidlength);
             packet_end();
             last_uidlen=nfcidlength;
             memcpy(last_uid, nfcid, nfcidlength);
@@ -200,9 +201,9 @@ void loop(void) {
         if ((!nfcid_decoded) || (output_flags & OUTPUT_RAWTAG)) {
             packet_start();
             Serial.print("rawtag=");
-            hexdump(&type, 1);
-            hexdump(&len, 1);
-            hexdump(data, len);
+            hexdump(Serial, &type, 1);
+            hexdump(Serial, &len, 1);
+            hexdump(Serial, data, len);
             packet_end();
         }
 

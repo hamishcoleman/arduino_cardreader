@@ -10,6 +10,7 @@
 
 #include "byteops.h"
 #include "card_iso7816.h"
+#include "hexdump.h"
 
 #define APDU_selectByID     0
 #define APDU_selectFile     1
@@ -79,7 +80,7 @@ static serial_reserror(uint8_t * err) {
 static uint8_t apdu_send(Adafruit_PN532 nfc, char *name, uint8_t *cmd, uint8_t cmdlen, uint8_t *res, uint8_t reslen) {
     Serial.println(name);
     Serial.print(F("APDU Tx: "));
-    hexdump(cmd,cmdlen);
+    hexdump(Serial, cmd,cmdlen);
     Serial.println();
 
     // FIXME: set private nfc._inListedTag == tg;
@@ -88,7 +89,7 @@ static uint8_t apdu_send(Adafruit_PN532 nfc, char *name, uint8_t *cmd, uint8_t c
     }
 
     Serial.print(F("APDU Rx: "));
-    hexdump(res,reslen);
+    hexdump(Serial, res,reslen);
     if (reslen == 2) {
         Serial.print(' ');
         serial_reserror(res);

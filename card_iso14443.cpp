@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include "arduino_cardreader.h"
 #include "byteops.h"
+#include "hexdump.h"
 #include "packets.h"
 
 bool iso14443a_select_app(Adafruit_PN532 nfc, uint8_t tg, uint32_t app) {
@@ -121,7 +122,7 @@ void decode_iso14443a(Adafruit_PN532 nfc, uint8_t tg) {
     if (output_flags & OUTPUT_RAWALL) {
         packet_start();
         Serial.print("apps=");
-        hexdump(res, reslen);
+        hexdump(Serial, res, reslen);
         packet_end();
     }
 
