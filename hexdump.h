@@ -4,6 +4,7 @@
  *
  * Just implment a simple and sane hexdump
  */
+#pragma once
 
 #include <Print.h>
 

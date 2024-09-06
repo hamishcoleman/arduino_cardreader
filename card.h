@@ -4,6 +4,7 @@
  *
  * An abstract representation of a generic card
  */
+#pragma once
 
 #define UID_TYPE_NONE       0   // No card is represented
 #define UID_TYPE_UNKNOWN    1   // A Card with a type we dont understand

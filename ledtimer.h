@@ -5,6 +5,7 @@
  * This is a timer driven, automatic LED state handler.
  * It is intended to be generic enough to be reusable in other projects
  */
+#pragma once
 
 #include <stdint.h>
 

@@ -5,6 +5,7 @@
  * A small collection of useful tools for handling bytes and buffers.
  * It is intended to be generic enough to be reusable in other projects
  */
+#pragma once
 
 /* Convert from a memory buffer to an integer */
 uint32_t buf_be2hl(uint8_t *buf);

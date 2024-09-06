@@ -4,6 +4,7 @@
  *
  * Packetised input and output handling
  */
+#pragma once
 
 #define packet_start()  Serial.print('\x02')
 #define packet_end()    Serial.println('\x04')

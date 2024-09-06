@@ -4,6 +4,7 @@
  *
  * Shared definitiions
  */
+#pragma once
 
 #include <Adafruit_PN532.h>
 

@@ -4,6 +4,7 @@
  *
  * functions to interface with ISO7816 cards
  */
+#pragma once
 
 #include <Adafruit_PN532.h>
 void decode_iso7816(Adafruit_PN532 nfc);

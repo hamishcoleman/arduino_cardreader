@@ -8,6 +8,7 @@
  * This module currently relies on a hacked Adafruit_PN532 that managed the
  * private _inListedTag variable differently
  */
+#pragma once
 
 #include <Adafruit_PN532.h>
 
