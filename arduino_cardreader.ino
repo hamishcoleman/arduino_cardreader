@@ -16,6 +16,7 @@
 
 #include "arduino_cardreader.h"
 #include "byteops.h"        // for hexdump()
+#include "card.h"
 #include "card_iso14443.h"
 #include "card_iso7816.h"
 #include "card_mifare.h"
@@ -79,8 +80,7 @@ void setup(void) {
   Serial.println("Waiting for a Card ...");
 }
 
-uint8_t last_uidlen = 0;
-uint8_t last_uid[12];
+Card last_card;
 
 void loop(void) {
     while (Serial.available()) {
@@ -91,14 +91,13 @@ void loop(void) {
     uint8_t found = nfc.inAutoPoll(polldata, sizeof(polldata));
 
     if (!found) {
-        if (last_uidlen) {
+        if (last_card.uid_type) {
             // Show that the card reader is clear of detected cards
             packet_start();
             Serial.print("uid=NONE");
             packet_end();
             Serial.println();
-            last_uidlen = 0;
-            memset(last_uid, 0, sizeof(last_uid));
+            last_card.uid_type = 0;
         }
         return;
     }
@@ -106,8 +105,8 @@ void loop(void) {
     // We overload the uidlen here - for non decoded cards, the len will end
     // up being 1 or 2, which should still not match the deduplication logic
     // while at the same time working with the uid=NONE logic.
-    if (!last_uidlen) {
-        last_uidlen = found;
+    if (!last_card.uid_len) {
+        last_card.uid_len = found;
     }
 
     // we found at least one card, blink the status light for a bit
@@ -172,29 +171,31 @@ void loop(void) {
 */
 
         if (nfcid_decoded) {
-            if ((last_uidlen==nfcidlength) && (memcmp(last_uid,nfcid,nfcidlength)==0)) {
+            Card card;
+            card.set_uid(nfcid, nfcidlength);
+            switch(type) {
+                case TYPE_MIFARE:
+                    card.set_uid_type(UID_TYPE_MIFARE);
+                    break;
+                case TYPE_ISO14443A:
+                    card.set_uid_type(UID_TYPE_ISO14443A);
+                    break;
+                case TYPE_FELICA_212:
+                case TYPE_FELICA_424:
+                    card.set_uid_type(UID_TYPE_FELICA);
+                    break;
+            }
+
+            if (card == last_card) {
                 // Skip repeatly processing the same card
                 return;
             }
 
             packet_start();
             Serial.print("uid=");
-            switch(type) {
-                case TYPE_MIFARE:
-                    Serial.print("mifare/");
-                    break;
-                case TYPE_ISO14443A:
-                    Serial.print("iso14443a/");
-                    break;
-                case TYPE_FELICA_212:
-                case TYPE_FELICA_424:
-                    Serial.print("felica/");
-                    break;
-            }
-            hexdump(Serial, nfcid, nfcidlength);
+            card.print_uid(Serial);
             packet_end();
-            last_uidlen=nfcidlength;
-            memcpy(last_uid, nfcid, nfcidlength);
+            last_card = card;
         }
 
         // Always do a raw dump if we didnt understand the data

@@ -8,6 +8,7 @@ FQBN ?= arduino:avr:pro
 PORT ?= /dev/ttyUSB0
 
 DEPS += byteops.h byteops.cpp
+DEPS += card.h card.cpp
 DEPS += card_iso14443.h card_iso14443.cpp
 DEPS += card_iso7816.h card_iso7816.cpp
 DEPS += card_mifare.h card_mifare.cpp
