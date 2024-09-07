@@ -40,6 +40,9 @@ void Card::print_info(Print& p) {
         case INFO_TYPE_SERIAL_HSL:
             p.print(F("hsl"));
             break;
+        case INFO_TYPE_SERIAL_TROIKA:
+            p.print(F("troika"));
+            break;
         default:
             p.print(F("ERROR"));
             return;
@@ -56,7 +59,7 @@ void Card::print_info_msg(Print& p) {
 
     packet_start(p);
     switch(info_type & 0xf0) {
-        case INFO_TYPE_SERIAL_HSL:
+        case INFO_TYPE_SERIAL:
             p.print(F("serial"));
             break;
         default:

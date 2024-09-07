@@ -15,6 +15,7 @@
 #define INFO_TYPE_NONE          0
 #define INFO_TYPE_SERIAL        0x10
 #define INFO_TYPE_SERIAL_HSL    0x10
+#define INFO_TYPE_SERIAL_TROIKA 0x11
 
 #include <Print.h>
 

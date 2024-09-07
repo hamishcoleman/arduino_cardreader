@@ -41,9 +41,14 @@ static void decode_hsl(Adafruit_PN532& nfc, Card& card, uint8_t *page4) {
     card.info_type = INFO_TYPE_SERIAL_HSL;
 }
 
-static void decode_troika(Adafruit_PN532& nfc, uint8_t *page4) {
-    uint32_t s = (buf_be2hl(&page4[0]) << 20) | (buf_be2hl(&page4[4]) >> 12);
-    Serial.print(s);
+static void decode_troika(Adafruit_PN532& nfc, Card& card, uint8_t *page4) {
+    snprintf(
+        card.info,
+        sizeof(card.info),
+        "%lu",
+        (buf_be2hl(&page4[0]) << 20) | (buf_be2hl(&page4[4]) >> 12)
+    );
+    card.info_type = INFO_TYPE_SERIAL_TROIKA;
 }
 
 static void decode_mifare7(Adafruit_PN532& nfc, Card& card) {
@@ -69,10 +74,9 @@ static void decode_mifare7(Adafruit_PN532& nfc, Card& card) {
     }
 
     if ((page4[0]==0x45) && (page4[1]&0xc0 == 0xc0)) {
-        packet_start(Serial);
-        Serial.print("serial=troika/");
-        decode_troika(nfc, page4);
-        packet_end(Serial);
+        // Flush any existing info
+        card.print_info_msg(Serial);
+        decode_troika(nfc, card, page4);
         return;
     }
 
