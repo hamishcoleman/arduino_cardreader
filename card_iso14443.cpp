@@ -120,10 +120,10 @@ void decode_iso14443a(Adafruit_PN532& nfc, uint8_t tg) {
 
     uint8_t reslen = do_iso14443a_apps(nfc, tg, res, sizeof(res));
     if (output_flags & OUTPUT_RAWALL) {
-        packet_start();
+        packet_start(Serial);
         Serial.print("apps=");
         hexdump(Serial, res, reslen);
-        packet_end();
+        packet_end(Serial);
     }
 
     uint8_t pos = 1;
@@ -135,7 +135,7 @@ void decode_iso14443a(Adafruit_PN532& nfc, uint8_t tg) {
         // - we return after the first matched app ID, which might not be
         //   the correct answer.  (So far, only myki has more than one app)
 
-        packet_start();
+        packet_start(Serial);
         Serial.print("serial=");
         switch(app) {
             case 0x11f2:
@@ -151,6 +151,6 @@ void decode_iso14443a(Adafruit_PN532& nfc, uint8_t tg) {
     }
 
 end1:
-    packet_end();
+    packet_end(Serial);
 }
 

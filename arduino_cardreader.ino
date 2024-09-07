@@ -39,9 +39,9 @@ void setup(void) {
     while (!Serial); // for Leonardo/Micro/Zero
 #endif
     Serial.begin(115200);
-    packet_start();
+    packet_start(Serial);
     Serial.print("sketch=" __FILE__);
-    packet_end();
+    packet_end(Serial);
 
     led[0].pin = LED1;
     led[1].pin = LED2;
@@ -93,9 +93,9 @@ void loop(void) {
     if (!found) {
         if (last_card.uid_type != UID_TYPE_NONE) {
             // Show that the card reader is clear of detected cards
-            packet_start();
+            packet_start(Serial);
             Serial.print("uid=NONE");
-            packet_end();
+            packet_end(Serial);
             Serial.println();
             last_card.uid_type = UID_TYPE_NONE;
         }
@@ -117,10 +117,10 @@ void loop(void) {
 
     if (output_flags & OUTPUT_RAWALL) {
         // only output message if debugging output is on
-        packet_start();
+        packet_start(Serial);
         Serial.print("rawpoll=");
         hexdump(Serial, polldata, sizeof(polldata));
-        packet_end();
+        packet_end(Serial);
     }
 
     uint8_t pos = 0;
@@ -190,20 +190,20 @@ void loop(void) {
 
         if (card.uid_type > UID_TYPE_UNKNOWN) {
 
-            packet_start();
+            packet_start(Serial);
             Serial.print("uid=");
             card.print_uid(Serial);
-            packet_end();
+            packet_end(Serial);
         }
 
         // Always do a raw dump if we didnt understand the data
         if ((card.uid_type <= UID_TYPE_UNKNOWN) || (output_flags & OUTPUT_RAWTAG)) {
-            packet_start();
+            packet_start(Serial);
             Serial.print("rawtag=");
             hexdump(Serial, &type, 1);
             hexdump(Serial, &len, 1);
             hexdump(Serial, data, len);
-            packet_end();
+            packet_end(Serial);
         }
 
         if (type == TYPE_MIFARE) {

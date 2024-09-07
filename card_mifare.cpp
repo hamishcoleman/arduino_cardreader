@@ -48,25 +48,25 @@ static void decode_mifare7(Adafruit_PN532& nfc, Card& card) {
     }
 
     if (output_flags & OUTPUT_RAWALL) {
-        packet_start();
+        packet_start(Serial);
         Serial.print("page[4..7]=");
         hexdump(Serial, page4, sizeof(page4));
-        packet_end();
+        packet_end(Serial);
     }
 
     if (buf_be2h24(&page4[1]) == 0x924621) {
-        packet_start();
+        packet_start(Serial);
         Serial.print("serial=hsl/");
         decode_hsl(nfc, card, page4);
-        packet_end();
+        packet_end(Serial);
         return;
     }
 
     if ((page4[0]==0x45) && (page4[1]&0xc0 == 0xc0)) {
-        packet_start();
+        packet_start(Serial);
         Serial.print("serial=troika/");
         decode_troika(nfc, page4);
-        packet_end();
+        packet_end(Serial);
         return;
     }
 
