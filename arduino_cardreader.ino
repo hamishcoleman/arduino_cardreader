@@ -241,5 +241,10 @@ void loop(void) {
             }
         }
 
+        card.print_info_msg(Serial);
+
+        packet_start(Serial);
+        card.print_cardid(Serial);
+        packet_end(Serial);
     }
 }
