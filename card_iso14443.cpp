@@ -12,7 +12,7 @@
 #include "hexdump.h"
 #include "packets.h"
 
-bool iso14443a_select_app(Adafruit_PN532 nfc, uint8_t tg, uint32_t app) {
+bool iso14443a_select_app(Adafruit_PN532& nfc, uint8_t tg, uint32_t app) {
     uint8_t cmd[4];
     cmd[0] = 0x5a;   // Select Application
     cmd[1] = (app & 0xff0000) >> 16;
@@ -27,7 +27,7 @@ bool iso14443a_select_app(Adafruit_PN532 nfc, uint8_t tg, uint32_t app) {
     return true;
 }
 
-uint8_t iso14443a_read_file(Adafruit_PN532 nfc, uint8_t tg, uint8_t file, uint8_t offset, uint8_t size, uint8_t *buf, uint8_t buflen) {
+uint8_t iso14443a_read_file(Adafruit_PN532& nfc, uint8_t tg, uint8_t file, uint8_t offset, uint8_t size, uint8_t *buf, uint8_t buflen) {
     uint8_t cmd[8];
     cmd[0] = 0xbd;  // Read Data
     cmd[1] = file;  // File no
@@ -45,7 +45,7 @@ uint8_t iso14443a_read_file(Adafruit_PN532 nfc, uint8_t tg, uint8_t file, uint8_
     return buflen;
 }
 
-static void do_iso14443a_clipper(Adafruit_PN532 nfc, uint8_t tg) {
+static void do_iso14443a_clipper(Adafruit_PN532& nfc, uint8_t tg) {
     Serial.print("clipper/");
 
     if (!iso14443a_select_app(nfc, tg, 0x9011f2)) {
@@ -60,7 +60,7 @@ static void do_iso14443a_clipper(Adafruit_PN532 nfc, uint8_t tg) {
     Serial.print(buf_be2hl(&buf[1]));
 }
 
-static void do_iso14443a_opal(Adafruit_PN532 nfc, uint8_t tg) {
+static void do_iso14443a_opal(Adafruit_PN532& nfc, uint8_t tg) {
     Serial.print("opal/");
 
     if (!iso14443a_select_app(nfc, tg, 0x314553)) {
@@ -79,7 +79,7 @@ static void do_iso14443a_opal(Adafruit_PN532 nfc, uint8_t tg) {
     Serial.print(buf[5] & 0xf);
 }
 
-static void do_iso14443a_myki(Adafruit_PN532 nfc, uint8_t tg) {
+static void do_iso14443a_myki(Adafruit_PN532& nfc, uint8_t tg) {
     Serial.print("myki/");
 
     if (!iso14443a_select_app(nfc, tg, 0x11F2)) {
@@ -99,7 +99,7 @@ static void do_iso14443a_myki(Adafruit_PN532 nfc, uint8_t tg) {
     Serial.print('x');
 }
 
-uint8_t do_iso14443a_apps(Adafruit_PN532 nfc, uint8_t tg, uint8_t *res, uint8_t reslen) {
+uint8_t do_iso14443a_apps(Adafruit_PN532& nfc, uint8_t tg, uint8_t *res, uint8_t reslen) {
     uint8_t cmd[1];
     cmd[0] = 0x6a;   // Get Application IDs
 
@@ -115,7 +115,7 @@ uint8_t do_iso14443a_apps(Adafruit_PN532 nfc, uint8_t tg, uint8_t *res, uint8_t 
     return reslen;
 }
 
-void decode_iso14443a(Adafruit_PN532 nfc, uint8_t tg) {
+void decode_iso14443a(Adafruit_PN532& nfc, uint8_t tg) {
     uint8_t res[10];
 
     uint8_t reslen = do_iso14443a_apps(nfc, tg, res, sizeof(res));

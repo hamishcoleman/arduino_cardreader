@@ -13,4 +13,4 @@
 #include <Adafruit_PN532.h>
 #include "card.h"
 
-void decode_mifare(Adafruit_PN532 nfc, Card& card);
+void decode_mifare(Adafruit_PN532& nfc, Card& card);

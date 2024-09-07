@@ -7,4 +7,4 @@
 #pragma once
 
 #include <Adafruit_PN532.h>
-void decode_iso7816(Adafruit_PN532 nfc);
+void decode_iso7816(Adafruit_PN532& nfc);

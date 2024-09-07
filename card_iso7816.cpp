@@ -77,7 +77,7 @@ static serial_reserror(uint8_t * err) {
     }
 }
 
-static uint8_t apdu_send(Adafruit_PN532 nfc, char *name, uint8_t *cmd, uint8_t cmdlen, uint8_t *res, uint8_t reslen) {
+static uint8_t apdu_send(Adafruit_PN532& nfc, char *name, uint8_t *cmd, uint8_t cmdlen, uint8_t *res, uint8_t reslen) {
     Serial.println(name);
     Serial.print(F("APDU Tx: "));
     hexdump(Serial, cmd,cmdlen);
@@ -98,7 +98,7 @@ static uint8_t apdu_send(Adafruit_PN532 nfc, char *name, uint8_t *cmd, uint8_t c
     return reslen;
 }
 
-static void apdu_simple(Adafruit_PN532 nfc, uint8_t nr) {
+static void apdu_simple(Adafruit_PN532& nfc, uint8_t nr) {
     uint8_t *cmd = apdu[nr];
     uint8_t cmdlen = apdu_size[nr];
 
@@ -106,25 +106,25 @@ static void apdu_simple(Adafruit_PN532 nfc, uint8_t nr) {
     apdu_send(nfc, apdu_name[nr], apdu[nr], apdu_size[nr], buf, sizeof(buf));
 }
 
-static void selectByID(Adafruit_PN532 nfc) {
+static void selectByID(Adafruit_PN532& nfc) {
     apdu_simple(nfc, APDU_selectByID);
 }
 
-static void getBalance(Adafruit_PN532 nfc) {
+static void getBalance(Adafruit_PN532& nfc) {
     apdu_simple(nfc, APDU_getBalance);
 }
 
-static void readPSE(Adafruit_PN532 nfc, uint8_t index) {
+static void readPSE(Adafruit_PN532& nfc, uint8_t index) {
     apdu[APDU_readPSE][3] = index;
     apdu_simple(nfc, APDU_readPSE);
 }
 
-static void readBinary(Adafruit_PN532 nfc, uint8_t sfi) {
+static void readBinary(Adafruit_PN532& nfc, uint8_t sfi) {
     apdu[APDU_readBinary][2] = sfi;
     apdu_simple(nfc, APDU_readBinary);
 }
 
-void decode_iso7816(Adafruit_PN532 nfc) {
+void decode_iso7816(Adafruit_PN532& nfc) {
 
     selectByID(nfc);
     apdu_simple(nfc, APDU_selectFile);
