@@ -13,6 +13,31 @@
 #include "hexdump.h"
 #include "packets.h"
 
+uint8_t str_luhn(char *s) {
+    uint8_t sum = 0;
+    bool doubling=true;
+    while(*s) {
+        uint8_t digit = *s - 0x30;
+        if (!doubling) {
+            sum += digit;
+        } else if (digit > 4) {
+            sum += 2 * digit -9;
+        } else {
+            sum += 2 * digit;
+        }
+        doubling = !doubling;
+        s++;
+    }
+    // FIXME:
+    // There shouldnt be a +1 here, so there is probably an error somewhere in
+    // my formula above
+    uint8_t check = (10 - (sum % 10)) +1;
+    if (check==10) {
+        check = 0;
+    }
+    return check;
+}
+
 bool iso14443a_select_app(Adafruit_PN532& nfc, uint8_t tg, uint32_t app) {
     uint8_t cmd[4];
     cmd[0] = 0x5a;   // Select Application
@@ -100,13 +125,13 @@ static void do_iso14443a_myki(Adafruit_PN532& nfc, uint8_t tg, Card& card) {
     card.print_info_msg(Serial);
     // TODO:
     // - what if the second uint32 is >99999999 ??
-    // - calculate the Luhn check digit (instead of just 'x')
     card.set_info(
-        "%06lu%08lu%c",
+        "%06lu%08lu",
         buf_le2hl(&buf[1]),
-        buf_le2hl(&buf[5]),
-        'x'
+        buf_le2hl(&buf[5])
     );
+    card.info[14] = str_luhn(card.info) + 0x30;
+    card.info[15] = 0;
     card.set_info_type(INFO_TYPE_SERIAL_MIKI);
 }
 
