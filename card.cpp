@@ -6,6 +6,8 @@
  */
 
 #include <Print.h>
+#include <stdarg.h>
+
 #include "card.h"
 #include "hexdump.h"
 #include "packets.h"
@@ -33,6 +35,13 @@ void Card::print_uid(Print& p) {
 
     p.print('/');
     hexdump(p, uid, uid_len);
+}
+
+void Card::set_info(const char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    vsnprintf(info, sizeof(info), format, ap);
+    va_end(ap);
 }
 
 void Card::print_info(Print& p) {

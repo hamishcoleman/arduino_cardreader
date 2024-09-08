@@ -48,6 +48,8 @@ class Card {
         void set_uid_type(uint8_t type) { uid_type=type; };
         void print_uid(Print& p);
 
+        void set_info(const char *format, ...);
+        void set_info_type(const uint8_t type) { info_type=type; };
         void print_info(Print& p);
 
         // Called before overwriting info[] to print any previous info

@@ -30,25 +30,25 @@ static void decode_hsl(Adafruit_PN532& nfc, Card& card, uint8_t *page4) {
     uint32_t u1 = buf_be2h24(&card.uid[1]);
     uint32_t u2 = buf_be2h24(&card.uid[4]);
 
-    snprintf(
-        card.info,
-        sizeof(card.info),
+    // Flush old info, before overwriting
+    card.print_info_msg(Serial);
+    card.set_info(
         "%02x%02x%02x%02x%02x%07lu%x",
         page4[1],page4[2],page4[3],page4[4],page4[5],
         (u1^u2)&0x7fffff,
         (page4[6]>>4)
     );
-    card.info_type = INFO_TYPE_SERIAL_HSL;
+    card.set_info_type(INFO_TYPE_SERIAL_HSL);
 }
 
 static void decode_troika(Adafruit_PN532& nfc, Card& card, uint8_t *page4) {
-    snprintf(
-        card.info,
-        sizeof(card.info),
+    // Flush old info, before overwriting
+    card.print_info_msg(Serial);
+    card.set_info(
         "%lu",
         (buf_be2hl(&page4[0]) << 20) | (buf_be2hl(&page4[4]) >> 12)
     );
-    card.info_type = INFO_TYPE_SERIAL_TROIKA;
+    card.set_info_type(INFO_TYPE_SERIAL_TROIKA);
 }
 
 static void decode_mifare7(Adafruit_PN532& nfc, Card& card) {
@@ -67,15 +67,11 @@ static void decode_mifare7(Adafruit_PN532& nfc, Card& card) {
     }
 
     if (buf_be2h24(&page4[1]) == 0x924621) {
-        // Flush any existing info
-        card.print_info_msg(Serial);
         decode_hsl(nfc, card, page4);
         return;
     }
 
     if ((page4[0]==0x45) && (page4[1]&0xc0 == 0xc0)) {
-        // Flush any existing info
-        card.print_info_msg(Serial);
         decode_troika(nfc, card, page4);
         return;
     }
