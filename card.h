@@ -12,10 +12,13 @@
 #define UID_TYPE_ISO14443A  3
 #define UID_TYPE_FELICA     4
 
-#define INFO_TYPE_NONE          0
-#define INFO_TYPE_SERIAL        0x10
-#define INFO_TYPE_SERIAL_HSL    0x10
-#define INFO_TYPE_SERIAL_TROIKA 0x11
+#define INFO_TYPE_NONE              0
+#define INFO_TYPE_SERIAL            0x10
+#define INFO_TYPE_SERIAL_HSL        0x10
+#define INFO_TYPE_SERIAL_TROIKA     0x11
+#define INFO_TYPE_SERIAL_MIKI       0x12
+#define INFO_TYPE_SERIAL_OPAL       0x13
+#define INFO_TYPE_SERIAL_CLIPPER    0x14
 
 #include <Print.h>
 

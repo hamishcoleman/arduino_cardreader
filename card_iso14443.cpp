@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include "arduino_cardreader.h"
 #include "byteops.h"
+#include "card.h"
 #include "hexdump.h"
 #include "packets.h"
 
@@ -45,9 +46,7 @@ uint8_t iso14443a_read_file(Adafruit_PN532& nfc, uint8_t tg, uint8_t file, uint8
     return buflen;
 }
 
-static void do_iso14443a_clipper(Adafruit_PN532& nfc, uint8_t tg) {
-    Serial.print("clipper/");
-
+static void do_iso14443a_clipper(Adafruit_PN532& nfc, uint8_t tg, Card& card) {
     if (!iso14443a_select_app(nfc, tg, 0x9011f2)) {
         return;
     }
@@ -57,12 +56,16 @@ static void do_iso14443a_clipper(Adafruit_PN532& nfc, uint8_t tg) {
         return;
     }
 
-    Serial.print(buf_be2hl(&buf[1]));
+    // Flush old info, before overwriting
+    card.print_info_msg(Serial);
+    card.set_info(
+        "%9lu",
+        buf_be2hl(&buf[1])
+    );
+    card.set_info_type(INFO_TYPE_SERIAL_CLIPPER);
 }
 
-static void do_iso14443a_opal(Adafruit_PN532& nfc, uint8_t tg) {
-    Serial.print("opal/");
-
+static void do_iso14443a_opal(Adafruit_PN532& nfc, uint8_t tg, Card& card) {
     if (!iso14443a_select_app(nfc, tg, 0x314553)) {
         return;
     }
@@ -72,16 +75,18 @@ static void do_iso14443a_opal(Adafruit_PN532& nfc, uint8_t tg) {
         return;
     }
 
+    // Flush old info, before overwriting
+    card.print_info_msg(Serial);
     // TODO: what if the uint32 is >999999999 ??
-    Serial.print("308522");
-    serial_intzeropad(buf_le2hl(&buf[1]),9);
-
-    Serial.print(buf[5] & 0xf);
+    card.set_info(
+        "308522%09lu%i",
+        buf_le2hl(&buf[1]),
+        buf[5] & 0xf
+    );
+    card.set_info_type(INFO_TYPE_SERIAL_OPAL);
 }
 
-static void do_iso14443a_myki(Adafruit_PN532& nfc, uint8_t tg) {
-    Serial.print("myki/");
-
+static void do_iso14443a_myki(Adafruit_PN532& nfc, uint8_t tg, Card& card) {
     if (!iso14443a_select_app(nfc, tg, 0x11F2)) {
         return;
     }
@@ -91,12 +96,18 @@ static void do_iso14443a_myki(Adafruit_PN532& nfc, uint8_t tg) {
         return;
     }
 
-    // TODO: what if the second uint32 is >99999999 ??
-    serial_intzeropad(buf_le2hl(&buf[1]),6);
-    serial_intzeropad(buf_le2hl(&buf[5]),8);
-
-    // TODO: calculating the Luhn check digit would be annoying
-    Serial.print('x');
+    // Flush old info, before overwriting
+    card.print_info_msg(Serial);
+    // TODO:
+    // - what if the second uint32 is >99999999 ??
+    // - calculate the Luhn check digit (instead of just 'x')
+    card.set_info(
+        "%06lu%08lu%c",
+        buf_le2hl(&buf[1]),
+        buf_le2hl(&buf[5]),
+        'x'
+    );
+    card.set_info_type(INFO_TYPE_SERIAL_MIKI);
 }
 
 uint8_t do_iso14443a_apps(Adafruit_PN532& nfc, uint8_t tg, uint8_t *res, uint8_t reslen) {
@@ -115,7 +126,7 @@ uint8_t do_iso14443a_apps(Adafruit_PN532& nfc, uint8_t tg, uint8_t *res, uint8_t
     return reslen;
 }
 
-void decode_iso14443a(Adafruit_PN532& nfc, uint8_t tg) {
+void decode_iso14443a(Adafruit_PN532& nfc, uint8_t tg, Card& card) {
     uint8_t res[10];
 
     uint8_t reslen = do_iso14443a_apps(nfc, tg, res, sizeof(res));
@@ -135,22 +146,17 @@ void decode_iso14443a(Adafruit_PN532& nfc, uint8_t tg) {
         // - we return after the first matched app ID, which might not be
         //   the correct answer.  (So far, only myki has more than one app)
 
-        packet_start(Serial);
-        Serial.print("serial=");
         switch(app) {
             case 0x11f2:
-                do_iso14443a_myki(nfc, tg);
-                goto end1;
+                do_iso14443a_myki(nfc, tg, card);
+                return;
             case 0x314553:
-                do_iso14443a_opal(nfc, tg);
-                goto end1;
+                do_iso14443a_opal(nfc, tg, card);
+                return;
             case 0x9011f2:
-                do_iso14443a_clipper(nfc, tg);
-                goto end1;
+                do_iso14443a_clipper(nfc, tg, card);
+                return;
         }
     }
-
-end1:
-    packet_end(Serial);
 }
 

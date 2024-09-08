@@ -52,6 +52,15 @@ void Card::print_info(Print& p) {
         case INFO_TYPE_SERIAL_TROIKA:
             p.print(F("troika"));
             break;
+        case INFO_TYPE_SERIAL_MIKI:
+            p.print(F("miki"));
+            break;
+        case INFO_TYPE_SERIAL_OPAL:
+            p.print(F("opal"));
+            break;
+        case INFO_TYPE_SERIAL_CLIPPER:
+            p.print(F("clipper"));
+            break;
         default:
             p.print(F("ERROR"));
             return;
