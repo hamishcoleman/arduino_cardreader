@@ -39,16 +39,21 @@ Found chip PN532
 Firmware ver. 1.4
 Waiting for a Card ...
 uid=iso14443a/0435178A597532
+serial=opal/3085220093141592
+cardid=opal/3085220093141592
 uid=NONE
 
 uid=iso14443a/AF8E8E13
+cardid=iso14443a/AF8E8E13
 uid=mifare/E2E2F98B
+cardid=mifare/E2E2F98B
 uid=NONE
 
 ```
 
-This example shows two reads.  Firstly, an oyster card is held up and then
-removed.  Secondly, both a Translink Go card and a Shenzhen metro card are
+This example shows two reads.  Firstly, an opal card is held up and then
+removed - showing a card that can have its serial number determined.
+Secondly, both a Translink Go card and a Shenzhen metro card are
 held up at the same time - showing simultaneous detection and reading.
 
 ## Communications Protocol
@@ -76,7 +81,7 @@ This format is expected to evolve after more testing.
 
 | key | brief description |
 | --- | ----------------- |
-| cardid | FUTURE - in the cardreader's opinion, the best identifying string |
+| cardid | in the cardreader's opinion, the best identifying string |
 | rawpoll | An optional message for debugging the raw poll data |
 | rawtag | An optional message for debugging tag data |
 | serial | If possible, the serial number printed on the card is output |
