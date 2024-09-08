@@ -93,20 +93,14 @@ void loop(void) {
     if (!found) {
         if (last_card.uid_type != UID_TYPE_NONE) {
             // Show that the card reader is clear of detected cards
+            last_card.uid_type = UID_TYPE_NONE;
             packet_start(Serial);
-            Serial.print("uid=NONE");
+            Serial.print(F("uid="));
+            last_card.print_uid(Serial);
             packet_end(Serial);
             Serial.println();
-            last_card.uid_type = UID_TYPE_NONE;
         }
         return;
-    }
-
-    // We overload the uidlen here - for non decoded cards, the len will end
-    // up being 1 or 2, which should still not match the deduplication logic
-    // while at the same time working with the uid=NONE logic.
-    if (!last_card.uid_len) {
-        last_card.uid_len = found;
     }
 
     // we found at least one card, blink the status light for a bit
@@ -143,6 +137,9 @@ void loop(void) {
                 // uint16_t sens_res = data[1,2];   ATQA
                 // uint8_t sel_res = data[3];       SAK
                 card.set_uid(&data[5], data[4]);
+                if (len > (4 + card.uid_len)) {
+                    ats = &data[5 + card.uid_len];
+                }
 
                 if (type == TYPE_MIFARE) {
                     card.set_uid_type(UID_TYPE_MIFARE);
@@ -150,9 +147,6 @@ void loop(void) {
                     card.set_uid_type(UID_TYPE_ISO14443A);
                 }
 
-                if (len > (4 + card.uid_len)) {
-                    ats = &data[5 + card.uid_len];
-                }
                 break;
             case TYPE_FELICA_212:
             case TYPE_FELICA_424:

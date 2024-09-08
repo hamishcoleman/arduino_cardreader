@@ -19,6 +19,9 @@ void Card::set_uid(uint8_t *buf, uint8_t len) {
 
 void Card::print_uid(Print& p) {
     switch(uid_type) {
+        case UID_TYPE_NONE:
+            p.print(F("NONE"));
+            return;
         case UID_TYPE_MIFARE:
             p.print(F("mifare"));
             break;
