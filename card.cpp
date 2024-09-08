@@ -92,14 +92,21 @@ void Card::print_info_msg(Print& p) {
     packet_end(p);
 }
 
-void Card::print_cardid(Print& p) {
-    p.print(F("cardid="));
-
-    if (info_type == INFO_TYPE_NONE) {
-        // Our best card ID is the UID
-        print_uid(p);
+void Card::print_cardid_msg(Print& p) {
+    if (info_type == INFO_TYPE_NONE && uid_type <= UID_TYPE_UNKNOWN) {
+        // nothing sane we can identify with
         return;
     }
 
-    print_info(p);
+    packet_start(p);
+    p.print(F("cardid="));
+
+    if (info_type != INFO_TYPE_NONE) {
+        print_info(p);
+    } else {
+        // Our best card ID is the UID
+        print_uid(p);
+    }
+
+    packet_end(p);
 }

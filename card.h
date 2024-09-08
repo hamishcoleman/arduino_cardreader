@@ -59,6 +59,6 @@ class Card {
         void print_info_msg(Print& p);
 
         // Chooses the best string to represent this card and prints that
-        void print_cardid(Print& p);
+        void print_cardid_msg(Print& p);
 };
 
